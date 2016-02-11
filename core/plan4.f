@@ -62,9 +62,8 @@ C     first, compute pressure
       npres=icalld
       etime1=dnekclock()
 
-      etime2=dnekclock()
       call crespsp  (respr)
-      tcrespsp=tcrespsp+(dnekclock()-etime2)
+      tcrespsp=tcrespsp+(dnekclock()-etime1)
       call invers2  (h1,vtrans,ntot1)
       call rzero    (h2,ntot1)
       call ctolspl  (tolspl,respr)
