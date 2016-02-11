@@ -1133,6 +1133,12 @@ c
       tsett=0.0
       tcdtp=0.0
       tpres=0.0
+      tmakef=0.0
+      tcrespsp=0.0
+      tpresproj=0.0
+      tpresnoproj=0.0
+      tvproj=0.0
+      tvnoproj=0.0
       teslv=0.0
       tmltd=0.0
       tgsum=0.0
@@ -1397,6 +1403,17 @@ c         pbsol=tbsol/tttstp
 c         write(6,*) 'bsol time',nbsol,tbsol,pbsol
 c         pbso2=tbso2/tttstp
 c         write(6,*) 'bso2 time',nbso2,tbso2,pbso2
+
+c        New timers for performance paper
+         write(6,*) '--------------------------------------'
+         write(6,*) 'New timers for performance measurement'
+         write(6,*) '--------------------------------------'
+         write(6,*) 'makef time', tmakef
+         write(6,*) 'crespsp time', tcrespsp
+         write(6,*) 'Without projection pres', tpresnoproj
+         write(6,*) 'With projection pres', tpresproj
+         write(6,*) 'Without projection vsp', tvnoproj
+         write(6,*) 'With projection vsp', tvproj
 
 #ifdef MPITIMER
          write(6,'(/,A)') 'MPI timings'
