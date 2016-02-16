@@ -837,8 +837,15 @@ c
       if (p945.eq.0)      ifstdh = .true.
       if (istep.lt.p945)  ifstdh = .true.
 
+      etime1=dnekclock()
+
       if (ifstdh) then
          call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
+         if (cname.eq.'PRES') then
+           tpresnoproj=tpresnoproj+(dnekclock()-etime1)
+         else
+           tvnoproj=tvnoproj+(dnekclock()-etime1)
+         endif
       else
 
          n = nx1*ny1*nz1*nelfld(ifield)
@@ -858,6 +865,11 @@ c
 
          call project2
      $       (u,n,approx,napprox,h1,h2,vmk,vml,ifwt,ifvec,name6)
+         if (cname.eq.'PRES') then
+           tpresproj=tpresproj+(dnekclock()-etime1)
+         else
+           tvproj=tvproj+(dnekclock()-etime1)
+         endif
 
       endif
 

@@ -152,6 +152,7 @@ C
       include 'ORTHOV'
       include 'TSTEP'
       include 'SOLN'
+      include 'CTIMER'
  
       real ot1 (lx1,ly1,lz1,1)
       real ot2 (lx1,ly1,lz1,1)
@@ -171,6 +172,8 @@ C
       endif
 
       imesh = 1
+
+      etime1=dnekclock()
 
       if (ifstrs) then
          MATMOD = 0
@@ -195,6 +198,7 @@ C
      $                                   IMESH,TOLH,NMXi,3)
 
       ENDIF
+      tvproj=tvproj+(dnekclock()-etime1)
 C
       return
       end
