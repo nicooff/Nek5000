@@ -24,13 +24,7 @@ c    You should have received a copy of the GNU General Public License
 c    along with NEK5000.  If not, see <http://www.gnu.org/licenses/>.
 c
       call nek_init(intracomm)
-#ifdef HPM
-      call summary_start()
-#endif
       call nek_solve()
-#ifdef HPM
-      call summary_stop()
-#endif HPM
       call nek_end()
 
       call exitt()

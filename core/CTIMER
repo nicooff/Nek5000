@@ -1,7 +1,10 @@
 C
       COMMON /CTIMER/ tmxmf,tmxms,tdsum,taxhm,tcopy,tinvc,tinv3
      $               ,tmakef, tcrespsp,tpresproj
-     $               ,tpresnoproj, tvproj,tvnoproj
+     $               ,tpresnoproj,tvproj,tvnoproj
+     $               ,tpresproj1,tpresproj2,tpresprojhmhz
+     $               ,tvproj1,tvproj2,tvprojhmhz
+     $               ,iftimers,totaltime
       COMMON /CTIME2/ tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep
      $               ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2
      $               ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn
@@ -10,8 +13,10 @@ C
      $               ,twal,tgp2
 C
       REAL*8          tmxmf,tmxms,tdsum,taxhm,tcopy,tinvc,tinv3
-     $               ,tmakef, tcrespsp,tpresproj
-     $               ,tpresnoproj, tvproj,tvnoproj
+     $               ,tmakef,tcrespsp,tpresproj
+     $               ,tpresnoproj,tvproj,tvnoproj
+     $               ,tpresproj1,tpresproj2,tpresprojhmhz
+     $               ,tvproj1,tvproj2,tvprojhmhz,totaltime
       REAL*8          tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep
      $               ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2
      $               ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn
@@ -52,3 +57,4 @@ C
 
       common /ctimel/ ifsync
       logical         ifsync
+      logical         iftimers

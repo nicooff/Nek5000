@@ -1137,8 +1137,15 @@ c
       tcrespsp=0.0
       tpresproj=0.0
       tpresnoproj=0.0
+      tpresproj1=0.0
+      tpresproj2=0.0
+      tpresprojhmhz=0.0
       tvproj=0.0
       tvnoproj=0.0
+      tvproj1=0.0
+      tvproj2=0.0
+      tvprojhmhz=0.0
+      totaltime=0.0
       teslv=0.0
       tmltd=0.0
       tgsum=0.0
@@ -1408,12 +1415,19 @@ c        New timers for performance paper
          write(6,*) '--------------------------------------'
          write(6,*) 'New timers for performance measurement'
          write(6,*) '--------------------------------------'
+         write(6,*) 'total time', totaltime
          write(6,*) 'makef time', tmakef
          write(6,*) 'crespsp time', tcrespsp
          write(6,*) 'Without projection pres', tpresnoproj
-         write(6,*) 'With projection pres', tpresproj
+         write(6,*) 'With projection total pres', tpresproj
+         write(6,*) 'With projection hmhz pres', tpresprojhmhz
+         write(6,*) 'With projection project1 pres', tpresproj1
+         write(6,*) 'With projection project2 pres', tpresproj2
          write(6,*) 'Without projection vsp', tvnoproj
          write(6,*) 'With projection vsp', tvproj
+         write(6,*) 'With projection hmhz vsp', tvprojhmhz
+         write(6,*) 'With projection project1 vsp', tvproj1
+         write(6,*) 'With projection project2 vsp', tvproj2
 
 #ifdef MPITIMER
          write(6,'(/,A)') 'MPI timings'

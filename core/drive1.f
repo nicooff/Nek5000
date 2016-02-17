@@ -173,7 +173,9 @@ c-----------------------------------------------------------------------
       include 'CTIMER'
 
       real*4 papi_mflops
+      real*8 tmp1,tmp0
       integer*8 papi_flops
+      logical first
 
       call nekgsync()
 
@@ -196,8 +198,23 @@ c-----------------------------------------------------------------------
       istep  = 0
       msteps = 1
 
+      first=.true.
       do kstep=1,nsteps,msteps
+         if(iftimers .and. first) then 
+#ifdef HPM
+           call summary_start()
+#endif
+           first=.false.
+           tmp0=dnekclock()
+         endif
          call nek__multi_advance(kstep,msteps)
+         if(iftimers .and. (istep .eq. nsteps)) then 
+           tmp1=dnekclock()
+           totaltime=tmp1-tmp0
+#ifdef HPM
+           call summary_stop()
+#endif 
+         endif
          call userchk
          call prepost (.false.,'his')
          call in_situ_check()

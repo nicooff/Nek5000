@@ -822,6 +822,7 @@ c
       logical ifstdh
       character*4  cname
       character*6  name6
+      real tmp2,tmp1,tmp0
 
       logical ifwt,ifvec
 
@@ -841,10 +842,12 @@ c
 
       if (ifstdh) then
          call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
-         if (cname.eq.'PRES') then
-           tpresnoproj=tpresnoproj+(dnekclock()-etime1)
-         else
-           tvnoproj=tvnoproj+(dnekclock()-etime1)
+         if(iftimers) then
+           if (cname.eq.'PRES') then
+             tpresnoproj=tpresnoproj+(dnekclock()-etime1)
+           else
+             tvnoproj=tvnoproj+(dnekclock()-etime1)
+           endif
          endif
       else
 
@@ -860,15 +863,36 @@ c
 
          call project1
      $       (r,n,approx,napprox,h1,h2,vmk,vml,ifwt,ifvec,name6)
+         if(iftimers) then
+           tmp0=dnekclock()
+           if (cname.eq.'PRES') then
+             tpresproj1=tpresproj1+(tmp0-etime1)
+           else
+             tvproj1=tvproj1+(tmp0-etime1)
+           endif
+         endif
 
          call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
+         if(iftimers) then
+           tmp1=dnekclock()
+           if (cname.eq.'PRES') then
+             tpresprojhmhz=tpresprojhmhz+(tmp1-tmp0)
+           else
+             tvprojhmhz=tvprojhmhz+(tmp1-tmp0)
+           endif
+         endif
 
          call project2
      $       (u,n,approx,napprox,h1,h2,vmk,vml,ifwt,ifvec,name6)
-         if (cname.eq.'PRES') then
-           tpresproj=tpresproj+(dnekclock()-etime1)
-         else
-           tvproj=tvproj+(dnekclock()-etime1)
+         if(iftimers) then
+           tmp2=dnekclock()
+           if (cname.eq.'PRES') then
+             tpresproj2=tpresproj2+(tmp2-tmp1)
+             tpresproj=tpresproj+(tmp2-etime1)
+           else
+             tvproj2=tvproj2+(tmp2-tmp1)
+             tvproj=tvproj+(tmp2-etime1)
+           endif
          endif
 
       endif
