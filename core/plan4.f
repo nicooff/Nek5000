@@ -43,9 +43,9 @@ c
       call v_extrap(vext)
 
       ! compute explicit contributions bfx,bfy,bfz 
-      etime1=dnekclock()
+      etime1=dnekclock_sync()
       call makef 
-      if(iftimers) tmakef=tmakef+(dnekclock()-etime1)
+      if(iftimers) tmakef=tmakef+(dnekclock_sync()-etime1)
       call lagvel
 
       ! split viscosity into explicit/implicit part
@@ -63,7 +63,7 @@ C     first, compute pressure
       etime1=dnekclock()
 
       call crespsp  (respr)
-      if(iftimers) tcrespsp=tcrespsp+(dnekclock()-etime1)
+      if(iftimers) tcrespsp=tcrespsp+(dnekclock_sync()-etime1)
       call invers2  (h1,vtrans,ntot1)
       call rzero    (h2,ntot1)
       call ctolspl  (tolspl,respr)

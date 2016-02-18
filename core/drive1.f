@@ -201,19 +201,19 @@ c-----------------------------------------------------------------------
       first=.true.
       do kstep=1,nsteps,msteps
          if(iftimers .and. first) then 
-#ifdef HPM
+C#ifdef HPM
            call summary_start()
-#endif
+C#endif
            first=.false.
-           tmp0=dnekclock()
+           tmp0=dnekclock_sync()
          endif
          call nek__multi_advance(kstep,msteps)
          if(iftimers .and. (istep .eq. nsteps)) then 
-           tmp1=dnekclock()
+           tmp1=dnekclock_sync()
            totaltime=tmp1-tmp0
-#ifdef HPM
+C#ifdef HPM
            call summary_stop()
-#endif 
+C#endif 
          endif
          call userchk
          call prepost (.false.,'his')

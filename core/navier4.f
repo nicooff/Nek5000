@@ -838,15 +838,15 @@ c
       if (p945.eq.0)      ifstdh = .true.
       if (istep.lt.p945)  ifstdh = .true.
 
-      etime1=dnekclock()
+      etime1=dnekclock_sync()
 
       if (ifstdh) then
          call hmholtz(name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd)
          if(iftimers) then
            if (cname.eq.'PRES') then
-             tpresnoproj=tpresnoproj+(dnekclock()-etime1)
+             tpresnoproj=tpresnoproj+(dnekclock_sync()-etime1)
            else
-             tvnoproj=tvnoproj+(dnekclock()-etime1)
+             tvnoproj=tvnoproj+(dnekclock_sync()-etime1)
            endif
          endif
       else
@@ -864,7 +864,7 @@ c
          call project1
      $       (r,n,approx,napprox,h1,h2,vmk,vml,ifwt,ifvec,name6)
          if(iftimers) then
-           tmp0=dnekclock()
+           tmp0=dnekclock_sync()
            if (cname.eq.'PRES') then
              tpresproj1=tpresproj1+(tmp0-etime1)
            else
@@ -874,7 +874,7 @@ c
 
          call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
          if(iftimers) then
-           tmp1=dnekclock()
+           tmp1=dnekclock_sync()
            if (cname.eq.'PRES') then
              tpresprojhmhz=tpresprojhmhz+(tmp1-tmp0)
            else
@@ -885,7 +885,7 @@ c
          call project2
      $       (u,n,approx,napprox,h1,h2,vmk,vml,ifwt,ifvec,name6)
          if(iftimers) then
-           tmp2=dnekclock()
+           tmp2=dnekclock_sync()
            if (cname.eq.'PRES') then
              tpresproj2=tpresproj2+(tmp2-tmp1)
              tpresproj=tpresproj+(tmp2-etime1)
