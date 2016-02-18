@@ -4,7 +4,7 @@ C
      $               ,tpresnoproj,tvproj,tvnoproj
      $               ,tpresproj1,tpresproj2,tpresprojhmhz
      $               ,tvproj1,tvproj2,tvprojhmhz
-     $               ,iftimers,totaltime
+     $               ,iftimers,totaltime,trest
       COMMON /CTIME2/ tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep
      $               ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2
      $               ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn
@@ -16,7 +16,7 @@ C
      $               ,tmakef,tcrespsp,tpresproj
      $               ,tpresnoproj,tvproj,tvnoproj
      $               ,tpresproj1,tpresproj2,tpresprojhmhz
-     $               ,tvproj1,tvproj2,tvprojhmhz,totaltime
+     $               ,tvproj1,tvproj2,tvprojhmhz,totaltime,trest
       REAL*8          tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep
      $               ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2
      $               ,tsett,tslvb,tusbc,tddsl,tcrsl,tdsmx,tdsmn

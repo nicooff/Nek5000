@@ -303,10 +303,12 @@ c-----------------------------------------------------------------------
                if (ifmvbd)             call meshv         (igeom)
             endif
 
+            if(iftimers) etime1=dnekclock_sync()
             if (igeom.eq.ngeom.and.param(103).gt.0) 
      $          call q_filter(param(103))
 
             call setup_convect (igeom) ! Save convective velocity _after_ filter
+            if(iftimers) trest=trest+(dnekclock_sync()-etime1) 
 
          enddo
       endif

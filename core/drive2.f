@@ -730,12 +730,15 @@ C-----------------------------------------------------------------------
       include 'INPUT'
       include 'SOLN'
       include 'TSTEP'
+      include 'CTIMER'
 
       real*8 ts, dnekclock
  
       ifield = 1
       imesh  = 1
+      if(iftimers) etime1=dnekclock_sync() 
       call unorm
+      if(iftimers) trest=trest+(dnekclock_sync()-etime1) 
       call settolv
 
       ts = dnekclock() 
@@ -754,7 +757,9 @@ c                - Incompressibe or Weakly compressible (div u .ne. 0).
          igeom = 2
          call twalluz (igeom) ! Turbulence model
          call chkptol         ! check pressure tolerance
+         if(iftimers) etime1=dnekclock_sync() 
          call vol_flow        ! check for fixed flow rate
+         if(iftimers) trest=trest+(dnekclock_sync()-etime1) 
 
       elseif (iftran) then
 
@@ -1146,6 +1151,7 @@ c
       tvproj2=0.0
       tvprojhmhz=0.0
       totaltime=0.0
+      trest=0.0
       teslv=0.0
       tmltd=0.0
       tgsum=0.0
@@ -1428,6 +1434,7 @@ c        New timers for performance paper
          write(6,*) 'With projection hmhz vsp', tvprojhmhz
          write(6,*) 'With projection project1 vsp', tvproj1
          write(6,*) 'With projection project2 vsp', tvproj2
+         write(6,*) 'Rest:', trest
 
 #ifdef MPITIMER
          write(6,'(/,A)') 'MPI timings'
