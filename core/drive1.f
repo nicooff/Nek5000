@@ -207,15 +207,14 @@ c    Include pat_api for PAT_record
       first=.true.
       do kstep=1,nsteps,msteps
          if(iftimers .and. first) then 
+            tmp0=dnekclock_sync()
 #ifdef CRAYPAT
-            call nekgsync()
             call PAT_record(PAT_STATE_ON, istatpat)
 #endif  
 #ifdef HPM
             call summary_start()
 #endif
             first=.false.
-            tmp0=dnekclock_sync()
          endif
          call nek__multi_advance(kstep,msteps)
          if(iftimers .and. (istep .eq. nsteps)) then 
