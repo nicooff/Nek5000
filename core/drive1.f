@@ -180,7 +180,7 @@ c    Include pat_api for PAT_record
       real*4 papi_mflops
       real*8 tmp1,tmp0
       integer*8 papi_flops
-
+      logical first
       integer istatpat
 
       call nekgsync()
@@ -204,13 +204,18 @@ c    Include pat_api for PAT_record
       istep  = 0
       msteps = 1
 
+      first=.true.
       do kstep=1,nsteps,msteps
-         if(iftimers .and. kstep.eq.4) then 
+         if(iftimers .and. first) then 
 #ifdef CRAYPAT
             call nekgsync()
             call PAT_record(PAT_STATE_ON, istatpat)
 #endif  
-           tmp0=dnekclock_sync()
+#ifdef HPM
+            call summary_start()
+#endif
+            first=.false.
+            tmp0=dnekclock_sync()
          endif
          call nek__multi_advance(kstep,msteps)
          if(iftimers .and. (istep .eq. nsteps)) then 
@@ -218,6 +223,9 @@ c    Include pat_api for PAT_record
             totaltime=tmp1-tmp0
 #ifdef CRAYPAT
             call PAT_record(PAT_STATE_OFF, istatpat)
+#endif 
+#ifdef HPM
+            call summary_stop()
 #endif 
          endif
          call userchk
