@@ -167,6 +167,11 @@ c      COMMON /SCRCG/ DUMM10(LX1,LY1,LZ1,LELT,1)
 c-----------------------------------------------------------------------
       subroutine nek_solve
 
+c    Include pat_api for PAT_record
+#ifdef CRAYPAT
+      include "pat_apif.h"
+#endif
+
       include 'SIZE'
       include 'TSTEP'
       include 'INPUT'
@@ -176,6 +181,7 @@ c-----------------------------------------------------------------------
       real*8 tmp1,tmp0
       integer*8 papi_flops
       logical first
+      integer istatpat
 
       call nekgsync()
 
@@ -201,18 +207,24 @@ c-----------------------------------------------------------------------
       first=.true.
       do kstep=1,nsteps,msteps
          if(iftimers .and. first) then 
+            tmp0=dnekclock_sync()
+#ifdef CRAYPAT
+            call PAT_record(PAT_STATE_ON, istatpat)
+#endif  
 #ifdef HPM
-           call summary_start()
+            call summary_start()
 #endif
-           first=.false.
-           tmp0=dnekclock_sync()
+            first=.false.
          endif
          call nek__multi_advance(kstep,msteps)
          if(iftimers .and. (istep .eq. nsteps)) then 
-           tmp1=dnekclock_sync()
-           totaltime=tmp1-tmp0
+            tmp1=dnekclock_sync()
+            totaltime=tmp1-tmp0
+#ifdef CRAYPAT
+            call PAT_record(PAT_STATE_OFF, istatpat)
+#endif 
 #ifdef HPM
-           call summary_stop()
+            call summary_stop()
 #endif 
          endif
          call userchk

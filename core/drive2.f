@@ -731,8 +731,6 @@ C-----------------------------------------------------------------------
       include 'SOLN'
       include 'TSTEP'
       include 'CTIMER'
-
-      real*8 ts, dnekclock
  
       ifield = 1
       imesh  = 1
