@@ -78,9 +78,16 @@ c
       call local_solves_fdm    (u,v)
       tddsl=tddsl+dnekclock()-etime1
 
-      etime1=dnekclock()
+      if(iftimers) then
+         etime1=dnekclock_sync()
+      else
+         etime1=dnekclock()
+      endif
+
       call crs_solve_l2 (uc,v)
       tcrsl=tcrsl+dnekclock()-etime1
+
+      if(iftimers) tcoarse=tcoarse+(dnekclock_sync()-etime1)
 
       alpha = 10.
 c     if (param(89).ne.0.) alpha = abs(param(89))

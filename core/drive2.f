@@ -1150,6 +1150,7 @@ c
       tvprojhmhz=0.0
       totaltime=0.0
       trest=0.0
+      tcoarse=0.0
       teslv=0.0
       tmltd=0.0
       tgsum=0.0
@@ -1432,6 +1433,7 @@ c        New timers for performance paper
          write(6,*) 'With projection hmhz vsp', tvprojhmhz
          write(6,*) 'With projection project1 vsp', tvproj1
          write(6,*) 'With projection project2 vsp', tvproj2
+         write(6,*) 'Coarse grid solver', tcoarse
          write(6,*) 'Rest:', trest
 
 #ifdef MPITIMER

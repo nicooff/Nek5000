@@ -4,7 +4,7 @@ C
      $               ,tpresnoproj,tvproj,tvnoproj
      $               ,tpresproj1,tpresproj2,tpresprojhmhz
      $               ,tvproj1,tvproj2,tvprojhmhz
-     $               ,totaltime,trest
+     $               ,totaltime,trest,tcoarse
       COMMON /LTIMER/ iftimers
       COMMON /CTIME2/ tsolv,tgsum,tdsnd,tdadd,tcdtp,tmltd,tprep
      $               ,tpres,thmhz,tgop ,tgop1,tdott,tbsol,tbso2
