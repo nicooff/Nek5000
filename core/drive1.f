@@ -46,6 +46,8 @@ c      COMMON /SCRCG/ DUMM10(LX1,LY1,LZ1,LELT,1)
       call files
 
       etime1 = dnekclock()
+      if(nid .eq. 0) write(6,*) 'done :: Initialization ', 
+     &   etime1-etimes, ' sec'
       call readat          ! Read .rea +map file
 
       ifsync_ = ifsync
@@ -211,9 +213,9 @@ c    Include pat_api for PAT_record
 #ifdef CRAYPAT
             call PAT_record(PAT_STATE_ON, istatpat)
 #endif  
-#ifdef HPM
+C#ifdef HPM
             call summary_start()
-#endif
+C#endif
             first=.false.
          endif
          call nek__multi_advance(kstep,msteps)
@@ -223,9 +225,9 @@ c    Include pat_api for PAT_record
 #ifdef CRAYPAT
             call PAT_record(PAT_STATE_OFF, istatpat)
 #endif 
-#ifdef HPM
+C#ifdef HPM
             call summary_stop()
-#endif 
+C#endif 
          endif
          call userchk
          call prepost (.false.,'his')
