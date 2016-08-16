@@ -12,6 +12,7 @@ if [ "$PPLIST" == "?" ]; then
   echo "  MPIIO     use MPI-IO I/O kernel (experimental)"
   echo "  BGL       enable Blue Gene optimizations (BG/L and BG/P)"
   echo "  BGQ       enable Blue Gene optimizations (BG/Q)"
+  echo "  XSMM      use libxsmm for mxm"
   echo "  K10_MXM   use optimized MxM kernel for AMD Family 10h processors" 
   echo "  CVODE     use ODE solver from Sundials to solve for IFIELD>1 (experimental)"
   echo "  MOAB      enable MOAB/CUBIT support (experimental)"
@@ -169,29 +170,39 @@ then
 fi
 \rm test_underscore.* 2>/dev/null
 
-F77comp=$F77
-# mpi-wrappers?
-echo $F77comp | grep -i mp >/dev/null
-if [ $? -eq 0 ]; then   
+
 # trying to figure out which compiler we're using 
-  F77ok=0
-  F77comp_=`$F77 -showme 2>/dev/null 1>.tmp` 
+F77ok=0
+
+F77comp_=`$F77 -showme 2>/dev/null 1>.tmp`
+F77comp=`cat .tmp | awk '{print $1}' | awk -F/ '{print $NF}'`
+if [ -f "`which $F77comp 2>/dev/null`" ]; then
+  F77ok=1
+fi
+
+if [ $F77ok -eq 0 ]; then
+  F77comp_=`$F77 -show 2>/dev/null 1>.tmp`
   F77comp=`cat .tmp | awk '{print $1}' | awk -F/ '{print $NF}'`
   if [ -f "`which $F77comp 2>/dev/null`" ]; then
     F77ok=1
-  else
-    F77comp_=`$F77 -show 2>/dev/null 1>.tmp`
-    F77comp=`cat .tmp | awk '{print $1}' | awk -F/ '{print $NF}'`
-    if [ -f "`which $F77comp 2>/dev/null`" ]; then
-      F77ok=1
-    fi
   fi
-else
+fi
+
+if [ $F77ok -eq 0 ]; then
+  F77comp_=`$F77 -craype-verbose 2>/dev/null 1>.tmp`
+  F77comp=`cat .tmp | awk '{print $1}' | awk -F/ '{print $NF}'`
+  if [ -f "`which $F77comp 2>/dev/null`" ]; then
+    F77ok=1
+  fi
+fi
+
+if [ $F77ok -eq 0 ]; then
   F77comp=`echo $F77 | awk '{print $1}'`
   if [ -f "`which $F77comp 2>/dev/null`" ]; then
     F77ok=1
   fi
 fi
+
 \rm -f .tmp
 if [ $F77ok -eq 0 ]; then
   F77comp="unknown"
@@ -207,11 +218,11 @@ case $F77comp in
                ;;
   *pathf*)      P="-r8 -cpp -fno-second-underscore"
                ;;
+  *ftn*)        P="-s default64 -eF"
+               ;;
   *xlf*)       P="-qrealsize=8 -qdpc=e -qsuffix=cpp=f"
                PPPO="-WF,"
                F77="${F77} -qsuppress=cmpmsg"
-               ;;
-  *ftn*)        P="-r8 -Mpreprocess"
                ;;
   *sunf*)       P="-r8const -xtypemap=real:64 -fpp"
                ;;
@@ -370,6 +381,10 @@ if [ $? -eq 0 ]; then
    MXM_USER="mxm_std.o mxm_bgq.o " 
    OPT_FLAGS_STD="-O3"
    OPT_FLAGS_MAG="-O3"
+fi
+echo $PPLIST | grep 'XSMM' >/dev/null 
+if [ $? -eq 0 ]; then
+   MXM_USER="mxm_std.o blas.o " 
 fi
 echo $PPLIST | grep 'K10_MXM' >/dev/null 
 if [ $? -eq 0 ]; then
