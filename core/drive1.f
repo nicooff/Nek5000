@@ -221,7 +221,7 @@ c    Include pat_api for PAT_record
             call PAT_record(PAT_STATE_ON, istatpat)
 #endif  
 C#ifdef HPM
-            call summary_start()
+C            call summary_start()
 C#endif
             first=.false.
          endif
@@ -233,7 +233,7 @@ C#endif
             call PAT_record(PAT_STATE_OFF, istatpat)
 #endif 
 C#ifdef HPM
-            call summary_stop()
+C            call summary_stop()
 C#endif 
          endif
          call userchk
