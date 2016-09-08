@@ -16,7 +16,6 @@ C
      $               ,CPFLD(LDIMT1,3)
      $               ,CPGRP(-5:10,LDIMT1,3)
      $               ,QINTEG(LDIMT3,MAXOBJ)
-     $               ,UPARAM(20)
 C
       COMMON /INPUT2/ MATYPE(-5:10,LDIMT1)
      $               ,NKTONV,NHIS,LOCHIS(4,lhis+maxobj)
