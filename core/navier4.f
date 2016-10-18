@@ -1016,7 +1016,7 @@ c     b <-- b - bbar
       logical ifwt,ifvec
 
       real alpha(mxprev),work(mxprev)     
-      koff =  mod1(of - m, m) + 1   ! Oldest solution
+      koff =  mod1(of - m, m)   ! Oldest solution
 
       if (m.le.0) return
 
