@@ -1,4 +1,4 @@
-function data = amg_setup(A,methodc,tolc,tol,tols)
+function [data,tcrs,tsmooth,tintp] = amg_setup(A,methodc,tolc,tol,tols)
     %gamma ~ tol
     %rho_f ~ gamma / (1 + gamma)
 	%rho_f * (1-gamma^2) + gamma^2 ~ gamma
@@ -15,6 +15,10 @@ function data = amg_setup(A,methodc,tolc,tol,tols)
 	data.nnzfp = zeros(0,1);
 	data.m = zeros(0,1);
 	data.rho = zeros(0,1);
+    
+    tcrs = 0;
+    tsmooth = 0;
+    tintp = 0;
     
     [~,n] = size(A);
     u = ones(n,1);
@@ -33,6 +37,7 @@ function data = amg_setup(A,methodc,tolc,tol,tols)
         if n <= 1; break; end
 
         %tolc2 = tolc*((w0/max(w,w0))^theta);
+        tic
         switch lower(methodc)
             case {'mixed','new'}
                 C = coarsen2(A,tolc);
@@ -44,7 +49,9 @@ function data = amg_setup(A,methodc,tolc,tol,tols)
 	fid = full(id); fid(id)=full(C); id=sparse(fid);
         F = ~C;
         data.F{level} = F;
+        tcrs = tcrs + toc;
 
+        tic
 		fprintf(1,'Computing diagonal smoother ...');
         Af = A(F,F);
 		%D = diag(sparse(1./diag(Aff)));
@@ -80,7 +87,9 @@ function data = amg_setup(A,methodc,tolc,tol,tols)
 			data.Af{level} = Af;
 		end
 		data.nnzf = [data.nnzf; nnz(data.Af{level})];
+        tsmooth = tsmooth + toc;
         
+        tic;
         W = intp.intp(A,C,gamma2,u);
         data.Wt{level} = W';
 		AfP = Af*W+A(F,C);
@@ -96,5 +105,6 @@ function data = amg_setup(A,methodc,tolc,tol,tols)
         A = W'*AfP + A(C,F)*W + A(C,C); u = u(C);
         if tols>0 && sum(C)>1; A = simple_sparsify(A,tols,u); end
         level = level + 1;    
+        tintp = tintp + toc;
     end
 end
