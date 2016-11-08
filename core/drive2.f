@@ -738,12 +738,13 @@ C-----------------------------------------------------------------------
       include 'INPUT'
       include 'SOLN'
       include 'TSTEP'
-
-      real*8 ts, dnekclock
+      include 'CTIMER'
  
       ifield = 1
       imesh  = 1
+      if(iftimers) etime1=dnekclock_sync() 
       call unorm
+      if(iftimers) trest=trest+(dnekclock_sync()-etime1) 
       call settolv
 
       ts = dnekclock() 
@@ -761,7 +762,9 @@ c                - Incompressibe or Weakly compressible (div u .ne. 0).
          call plan4 (igeom)                                           
          if (ifmodel)    call twalluz (igeom) ! Turbulence model              
          if (igeom.ge.2) call chkptol         ! check pressure tolerance 
+         if(iftimers) etime1=dnekclock_sync() 
          if (igeom.ge.2) call vol_flow        ! check for fixed flow rate
+         if(iftimers) trest=trest+(dnekclock_sync()-etime1) 
 
       elseif (iftran) then
 
@@ -1144,6 +1147,21 @@ c
       tsett=0.0
       tcdtp=0.0
       tpres=0.0
+      tmakef=0.0
+      tcrespsp=0.0
+      tpresproj=0.0
+      tpresnoproj=0.0
+      tpresproj1=0.0
+      tpresproj2=0.0
+      tpresprojhmhz=0.0
+      tvproj=0.0
+      tvnoproj=0.0
+      tvproj1=0.0
+      tvproj2=0.0
+      tvprojhmhz=0.0
+      totaltime=0.0
+      trest=0.0
+      tcoarse=0.0
       teslv=0.0
       tmltd=0.0
       tgsum=0.0
@@ -1414,6 +1432,26 @@ c         pbsol=tbsol/tttstp
 c         write(6,*) 'bsol time',nbsol,tbsol,pbsol
 c         pbso2=tbso2/tttstp
 c         write(6,*) 'bso2 time',nbso2,tbso2,pbso2
+
+c        New timers for performance paper
+         write(6,*) '--------------------------------------'
+         write(6,*) 'New timers for performance measurement'
+         write(6,*) '--------------------------------------'
+         write(6,*) 'total time', totaltime
+         write(6,*) 'makef time', tmakef
+         write(6,*) 'crespsp time', tcrespsp
+         write(6,*) 'Without projection pres', tpresnoproj
+         write(6,*) 'With projection total pres', tpresproj
+         write(6,*) 'With projection hmhz pres', tpresprojhmhz
+         write(6,*) 'With projection project1 pres', tpresproj1
+         write(6,*) 'With projection project2 pres', tpresproj2
+         write(6,*) 'Without projection vsp', tvnoproj
+         write(6,*) 'With projection vsp', tvproj
+         write(6,*) 'With projection hmhz vsp', tvprojhmhz
+         write(6,*) 'With projection project1 vsp', tvproj1
+         write(6,*) 'With projection project2 vsp', tvproj2
+         write(6,*) 'Coarse grid solver', tcoarse
+         write(6,*) 'Rest:', trest
 
 #ifdef MPITIMER
          write(6,'(/,A)') 'MPI timings'

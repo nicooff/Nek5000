@@ -1361,13 +1361,18 @@ c
       if (ifsync) call nekgsync()
 
       ncrsl  = ncrsl  + 1
-      etime1=dnekclock()
-
+      
+      if(iftimers) then
+         etime1=dnekclock_sync()
+      else
+         etime1=dnekclock()
+      endif
 
       call crs_solve(xxth(ifield),e,r)
 
       tcrsl=tcrsl+dnekclock()-etime1
 
+      if(iftimers) tcoarse=tcoarse+(dnekclock_sync()-etime1)
 
       return
       end

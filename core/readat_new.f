@@ -41,7 +41,6 @@ C
       INCLUDE 'ZPER'
 c
       call rzero(param,200)
-      call rzero(uparam,20)
 
 
       param(20) = 1e-8 ! temperature & passive passive tolerance
@@ -331,7 +330,6 @@ c set parameters
          call blank(txt,132)
          write(txt,"('general:userParam',i2.2)") i
          call finiparser_getDbl(d_out,txt,ifnd)
-         if(ifnd .eq. 1) uparam(i) = d_out
       enddo
 
 c set logical flags
@@ -532,7 +530,6 @@ C
       INCLUDE 'CVODE'
 
       call bcast(param , 200*wdsize)
-      call bcast(uparam, 20*wdsize)
       call bcast(atol ,  ldimt3*wdsize)
 
       call bcast(ifchar , lsize)

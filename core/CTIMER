@@ -58,4 +58,5 @@ c
       data    icalld /0/
 
       logical         ifsync
-      common /ctimel/ ifsync
+      logical         iftimers
+      common /ctimel/ ifsync, iftimers

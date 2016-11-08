@@ -40,9 +40,10 @@ c
 
       if (igeom.eq.1) then
 
-         ! compute explicit contributions bfx,bfy,bfz 
+         ! compute explicit contributions bfx,bfy,bfz
+         etime1=dnekclock_sync() 
          call makef 
-
+         if(iftimers) tmakef=tmakef+(dnekclock_sync()-etime1)
          call sumab(vx_e,vx,vxlag,ntot1,ab,nab)
          call sumab(vy_e,vy,vylag,ntot1,ab,nab)
          if (if3d) call sumab(vz_e,vz,vzlag,ntot1,ab,nab)
@@ -60,7 +61,9 @@ c
          call lagvel
 
          ! mask Dirichlet boundaries
+         if(iftimers) etime1=dnekclock_sync()
          call bcdirvc  (vx,vy,vz,v1mask,v2mask,v3mask) 
+         if(iftimers) trest=trest+(dnekclock_sync()-etime1) 
 
 C        first, compute pressure
 
@@ -70,6 +73,7 @@ C        first, compute pressure
          etime1=dnekclock()
 
          call crespsp  (respr)
+         if(iftimers) tcrespsp=tcrespsp+(dnekclock_sync()-etime1)
          call invers2  (h1,vtrans,ntot1)
          call rzero    (h2,ntot1)
          call ctolspl  (tolspl,respr)
@@ -84,7 +88,9 @@ C        first, compute pressure
          tpres=tpres+(dnekclock()-etime1)
 
 C        Compute velocity
+         if(iftimers) etime1=dnekclock_sync()
          call cresvsp (res1,res2,res3,h1,h2)
+         if(iftimers) trest=trest+(dnekclock_sync()-etime1)
          call ophinv_pr(dv1,dv2,dv3,res1,res2,res3,h1,h2,tolhv,nmxh)
          call opadd2  (vx,vy,vz,dv1,dv2,dv3)
 
@@ -92,10 +98,12 @@ C        Compute velocity
 
 c Below is just for diagnostics...
 
-c        Calculate Divergence norms of new VX,VY,VZ
-         CALL OPDIV   (DVC,VX,VY,VZ)
-         CALL DSSUM   (DVC,NX1,NY1,NZ1)
-         CALL COL2    (DVC,BINVM1,NTOT1)
+c     Calculate Divergence norms of new VX,VY,VZ
+      if(iftimers) etime1=dnekclock_sync()
+      CALL OPDIV   (DVC,VX,VY,VZ)
+      CALL DSSUM   (DVC,NX1,NY1,NZ1)
+      if(iftimers) trest=trest+(dnekclock_sync()-etime1)
+      CALL COL2    (DVC,BINVM1,NTOT1)
 
          CALL COL3    (DV1,DVC,BM1,NTOT1)
          DIV1 = GLSUM (DV1,NTOT1)/VOLVM1

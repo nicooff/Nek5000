@@ -23,6 +23,19 @@ c
 c    You should have received a copy of the GNU General Public License
 c    along with NEK5000.  If not, see <http://www.gnu.org/licenses/>.
 c
+
+c    Include pat_api for PAT_record
+#ifdef CRAYPAT
+      include "pat_apif.h"
+#endif
+
+      integer istatpat
+c     Turn off PAT record during init (and I/O steps)
+c     CrayPAT turned on inside nek_solve
+#ifdef CRAYPAT
+      call PAT_record(PAT_STATE_OFF, istatpat)
+#endif
+
       call nek_init(intracomm)
       call nek_solve()
       call nek_end()

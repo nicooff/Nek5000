@@ -1361,6 +1361,7 @@ c
       call crs_solve(xxth(ifield),uc,vc)
 #ifdef TIMER
       tcrsl=tcrsl+dnekclock()-etime1
+      if(iftimers) tcoarse=tcoarse+(dnekclock_sync()-etime1)
 #endif
 
       call map_c_to_f_h1_bilin(uf,uc)
