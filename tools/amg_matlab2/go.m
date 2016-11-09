@@ -54,13 +54,12 @@ if (strcmp(compute_cf, 'yes') == 1)
 end
 ttot = toc(tstart);
 
-fprintf(1,'Timers:\n');
-fprintf(1,' Total time = %g seconds\n', ttot);
-fprintf(1,' Import time = %g seconds\n', timport);
-fprintf(1,' Coarsening time = %g seconds\n', tcrs);
-fprintf(1,' Smoother time = %g seconds\n', tsmooth);
-fprintf(1,' Interpolation time = %g seconds\n', tintp);
-fprintf(1,' Export time = %g seconds\n', texport);
+fprintf(1,'Total time = %g seconds\n', ttot);
+fprintf(1,' Import data = %g seconds\n', timport);
+fprintf(1,' Coarsening = %g seconds\n', tcrs);
+fprintf(1,' Smoother = %g seconds\n', tsmooth);
+fprintf(1,' Interpolation = %g seconds\n', tintp);
+fprintf(1,' Export = %g seconds\n', texport);
 trest = ttot-timport-tcrs-tsmooth-tintp-texport;
 fprintf(1,' Rest = %g seconds\n', trest);
 
