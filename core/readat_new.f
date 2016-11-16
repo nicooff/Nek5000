@@ -39,9 +39,11 @@ C
       INCLUDE 'PARALLEL'
       INCLUDE 'CTIMER'
       INCLUDE 'ZPER'
-c
-      call rzero(param,200)
 
+      loglevel = 3
+      optlevel = 0
+
+      call rzero(param,200)
 
       param(20) = 1e-8 ! temperature & passive passive tolerance
       param(21) = 1e-6 ! pressure tolerance
@@ -178,6 +180,12 @@ c     - mhd support
       if(ierr .ne. 0) return
 
 c set parameters
+      call finiparser_getDbl(d_out,'general:loglevel',ifnd)
+      if(ifnd .eq. 1) loglevel = d_out
+
+      call finiparser_getDbl(d_out,'general:optlevel',ifnd)
+      if(ifnd .eq. 1) optlevel = d_out
+
       call finiparser_getString(c_out,'general:stopAt',ifnd)
       call capit(c_out,132)
       if (index(c_out,'ENDTIME') .gt. 0) then
@@ -528,6 +536,9 @@ C
       INCLUDE 'CTIMER'
       INCLUDE 'ZPER'
       INCLUDE 'CVODE'
+
+      call bcast(loglevel, isize)
+      call bcast(optlevel, isize)
 
       call bcast(param , 200*wdsize)
       call bcast(atol ,  ldimt3*wdsize)
