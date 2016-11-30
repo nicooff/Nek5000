@@ -80,8 +80,8 @@ C      Diag.
          if (alpha2.gt.0) ALPHA2 = sqrt(alpha2/volvm2)
          ratio  = alpha1/alpha2
          n10=min(10,nprev)
-         IF (NIO.EQ.0) WRITE(6,11)ISTEP,Nprev,(ALPHA(I),I=1,N10)
-         IF (NIO.EQ.0) WRITE(6,12) ISTEP,nprev,ALPHA1,ALPHA2,ratio
+c         IF (NIO.EQ.0) WRITE(6,11)ISTEP,Nprev,(ALPHA(I),I=1,N10)
+c         IF (NIO.EQ.0) WRITE(6,12) ISTEP,nprev,ALPHA1,ALPHA2,ratio
    11    FORMAT(2I5,' alpha:',1p10e12.4)
    12    FORMAT(I6,i4,1p3e12.4,' alph12')
 C
@@ -825,6 +825,14 @@ c
 
       logical ifwt,ifvec
 
+      integer of,ofprs,ofvx,ofvy,ofvz
+      save ofpr,ofvx,ofvy,ofvz
+      data ofpr /1/
+      data ofvx  /1/
+      data ofvy  /1/
+      data ofvz  /1/
+
+
       call chcopy(cname,name,4)
       call capit (cname,4)
 
@@ -851,20 +859,41 @@ c
          ifwt  = .true.
          ifvec = .false.
 
+         if (cname.eq.'PRES') then
+            of = ofpr
+         else if (cname.eq.'VELX') then
+            of = ofvx
+         else if (cname.eq.'VELY') then
+            of = ofvy
+         else if (cname.eq.'VELZ') then
+            of = ofvz
+         else
+            of = 1
+         endif
+C         stop 4711
          call project1
-     $       (r,n,approx,napprox,h1,h2,vmk,vml,ifwt,ifvec,name6)
+     $       (r,n,approx,napprox,h1,h2,vmk,vml,of,ifwt,ifvec,name6)
 
          call hmhzpf (name,u,r,h1,h2,vmk,vml,imsh,tol,maxit,isd,bi)
 
          call project2
-     $       (u,n,approx,napprox,h1,h2,vmk,vml,ifwt,ifvec,name6)
+     $       (u,n,approx,napprox,h1,h2,vmk,vml,of,ifwt,ifvec,name6)
 
+         if (cname.eq.'PRES') then
+            ofpr = of
+         else if (cname.eq.'VELX') then
+            ofvx = of
+         else if (cname.eq.'VELY') then
+            ofvy = of
+         else if (cname.eq.'VELZ') then
+            ofvz = of
+         endif
       endif
 
       return
       end
 c-----------------------------------------------------------------------
-      subroutine project1(b,n,rvar,ivar,h1,h2,msk,w,ifwt,ifvec,name6)
+      subroutine project1(b,n,rvar,ivar,h1,h2,msk,w,of,ifwt,ifvec,name6)
 
 c     1. Compute the projection of x onto X
 
@@ -907,6 +936,7 @@ c     keeping the number of vectors, m, small.
       integer ivar(1)
       character*6 name6
       logical ifwt,ifvec
+      integer of
 
       nn = n
       if (ifvec) nn = n*ndim
@@ -932,29 +962,36 @@ c     Re-orthogonalize basis set w.r.t. new vectors if space has changed.
             call proj_matvec (rvar(jb,1),rvar(jx,1),n,h1,h2,msk,name6)
          enddo
 
-         if (nio.eq.0) write(6,*) 'Reorthogonalize Basis:'
+c         if (nio.eq.0) write(6,'(13x,A)') 'Reorthogonalize Basis'
 
          call proj_ortho    ! Orthogonalize X & B basis sets
-     $      (rvar(ix,1),rvar(ib,1),n,m,w,ifwt,ifvec,name6)
+     $      (rvar(ix,1),rvar(ib,1),n,m,w,of,ifwt,ifvec,name6)
 
       endif
 
 c     ixb is pointer to xbar,  ibb is pointer to bbar := A*xbar
 
       call project1_a(rvar(ixb,1),rvar(ibb,1),b,rvar(ix,1),rvar(ib,1)
-     $               ,n,m,w,ifwt,ifvec)
+     $               ,n,m,w,of,ifwt,ifvec)
 
       baf = glsc3(b,w,b,n)
       baf = sqrt(baf)
       ratio = bb4/baf
 
-      if (nio.eq.0) write(6,1) istep,bb4,baf,ratio,m,name6
-    1 format(i8,1p3e14.5,i4,1x,a6,' PROJECT')
+c      if (nio.eq.0) write(6,1) istep,bb4,baf,ratio,m,name6
+c    1 format(4x,i7,1p3e13.4,i4,1x,a6,' PROJECT')
+
+
+      if (nio.eq.0) write(6,1) istep,'  Project ' // name6,
+     &                         bb4,baf,ratio,m,ireset
+    1 format(i11,a,6x,1p3e13.4,i4,i4)
+
+
 
       return
       end
 c-----------------------------------------------------------------------
-      subroutine project1_a(xbar,bbar,b,xx,bb,n,m,w,ifwt,ifvec)
+      subroutine project1_a(xbar,bbar,b,xx,bb,n,m,w,of,ifwt,ifvec)
 
 c     xbar is best fit in xx, bbar = A*xbar
 c     b <-- b - bbar
@@ -963,26 +1000,29 @@ c     b <-- b - bbar
       real xbar(n),bbar(n),b(n),xx(n,m),bb(n,m),w(n)
       logical ifwt,ifvec
 
-      real alpha(mxprev),work(mxprev)
-
+      real alpha(mxprev),work(mxprev)     
+      koff =  mod1(of - m, m)   ! Oldest solution
 
       if (m.le.0) return
 
       if (ifwt) then
-         do j=1,m
+         do jj = 0, m - 1
+            j = mod1(koff + jj, m) 
             alpha(j)=vlsc3(xx(1,j),w,b,n)
          enddo
       else
-         do j=1,m
+         do jj = 0, m - 1
+            j = mod1(koff + jj, m) 
             alpha(j)=vlsc2(xx(1,j),b,n)
          enddo
       endif
       call gop(alpha,work,'+  ',m)
 
-      call cmult2(xbar,xx(1,1),alpha(1),n)
-      call cmult2(bbar,bb(1,1),alpha(1),n)
+      call cmult2(xbar,xx(1,koff),alpha(koff),n)
+      call cmult2(bbar,bb(1,koff),alpha(koff),n)
 
-      do j=2,m
+      do jj=1,m-1
+         j = mod1(koff + jj, m) 
          call add2s2(xbar,xx(1,j),alpha(j),n)
          call add2s2(bbar,bb(1,j),alpha(j),n)
       enddo
@@ -1049,7 +1089,7 @@ c     string "name6"
       return
       end
 c-----------------------------------------------------------------------
-      subroutine proj_ortho(xx,bb,n,m,w,ifwt,ifvec,name6)
+      subroutine proj_ortho(xx,bb,n,m,w,of,ifwt,ifvec,name6)
 
       include 'SIZE'      ! nio
       include 'TSTEP'     ! istep
@@ -1060,25 +1100,31 @@ c-----------------------------------------------------------------------
       logical ifwt,ifvec
       integer flag(mxprev)
       real normk,normp
+      integer of
 
       if (m.le.0) return
 
-      if (      ifwt) alpha = glsc3(xx(1,m),w,bb(1,m),n)
-      if (.not. ifwt) alpha = glsc2(xx(1,m),bb(1,m),n)
+      if (      ifwt) alpha = glsc3(xx(1,of),w,bb(1,of),n)
+      if (.not. ifwt) alpha = glsc2(xx(1,of),bb(1,of),n)
       if (alpha.eq.0) return
 
       scale = 1./sqrt(alpha)
-      call cmult(xx(1,m),scale,n)
-      call cmult(bb(1,m),scale,n)
-      flag(m) = 1
+      call cmult(xx(1,of),scale,n)
+      call cmult(bb(1,of),scale,n)
+      flag(of) = 1
 
-      do k=m-1,1,-1  ! Reorthogonalize, starting with latest solution
+      do kk = 0, m - 2  ! Reorthogonalize, starting with latest solution
+
+         k = mod1((of - 2) - kk, m) + 1
 
          if (      ifwt) normk = glsc3(xx(1,k),w,bb(1,k),n)
          if (.not. ifwt) normk = glsc2(xx(1,k),bb(1,k),n)
          normk=sqrt(normk)
 
-         do j=m,k+1,-1   ! Modified GS
+         do jj = 0, kk   ! Modified GS
+            
+            j = mod1((of - 1) - jj, m) + 1
+
             alpha = 0.
             if (ifwt) then
                alpha = alpha + .5*(vlsc3(xx(1,j),w,bb(1,k),n)
@@ -1116,10 +1162,12 @@ c          if (nio.eq.0) write(6,2) istep,k,m,name6,normp,normk
       enddo
 
       k=0
-      do j=1,m
+      kk = mod1(of - m, m) + 1
+      do jj = 0, m - 1
+         j = mod1(kk + jj, m) 
          if (flag(j).eq.1) then
             k=k+1
-            if (k.lt.j) then
+            if (k.lt.(jj + 1)) then
                call copy(xx(1,k),xx(1,j),n)
                call copy(bb(1,k),bb(1,j),n)
             endif
@@ -1130,11 +1178,12 @@ c          if (nio.eq.0) write(6,2) istep,k,m,name6,normp,normk
       return
       end
 c-----------------------------------------------------------------------
-      subroutine project2(x,n,rvar,ivar,h1,h2,msk,w,ifwt,ifvec,name6)
+      subroutine project2(x,n,rvar,ivar,h1,h2,msk,w,of,ifwt,ifvec,name6)
       real x(n),b(n),rvar(n,1),h1(n),h2(n),w(n),msk(n)
       integer ivar(1)
       character*6 name6
       logical ifwt,ifvec
+      integer of
 
       call proj_get_ivar(m,mmx,ixb,ibb,ix,ib,ih1,ih2,ivar,n,ifvec,name6)
 
@@ -1142,7 +1191,7 @@ c     ix  is pointer to X,     ib  is pointer to B
 c     ixb is pointer to xbar,  ibb is pointer to bbar := A*xbar
 
       call project2_a(x,rvar(ixb,1),rvar(ix,1),rvar(ib,1)
-     $              ,n,m,mmx,h1,h2,msk,w,ifwt,ifvec,name6)
+     $              ,n,m,mmx,h1,h2,msk,w,of,ifwt,ifvec,name6)
 
       ivar(2) = m ! Update number of saved vectors
 
@@ -1150,28 +1199,25 @@ c     ixb is pointer to xbar,  ibb is pointer to bbar := A*xbar
       end
 c-----------------------------------------------------------------------
       subroutine project2_a
-     $      (x,xbar,xx,bb,n,m,mmx,h1,h2,msk,w,ifwt,ifvec,name6)
+     $      (x,xbar,xx,bb,n,m,mmx,h1,h2,msk,w,of,ifwt,ifvec,name6)
 
       real x(n),xbar(n),xx(n,1),bb(n,1),h1(n),h2(n),w(n),msk(n)
       character*6 name6
       logical ifwt,ifvec
+      integer of
 
       nn = n
       if (ifvec) nn=ndim*n
 
       call add2        (x,xbar,n)      ! Restore desired solution
 
-      if (m.eq.mmx) then ! Push old vector off the stack
-         do k=2,mmx
-            call copy     (xx(1,k-1),xx(1,k),nn)
-            call copy     (bb(1,k-1),bb(1,k),nn)
-         enddo
-      endif
-
       m = min(m+1,mmx)
-      call copy        (xx(1,m),x,nn)   ! Update (X,B)
-      call proj_matvec (bb(1,m),xx(1,m),n,h1,h2,msk,name6)
-      call proj_ortho  (xx,bb,n,m,w,ifwt,ifvec,name6) ! w=mult array
+
+      call copy        (xx(1,of),x,nn)   ! Update (X,B)
+      call proj_matvec (bb(1,of),xx(1,of),n,h1,h2,msk,name6)
+      call proj_ortho  (xx,bb,n,m,w,of,ifwt,ifvec,name6) ! w=mult array
+
+      of = mod1(of + 1, mmx)
 
       return
       end
