@@ -317,6 +317,8 @@ c
       common /orthbi/ nprv(2)
       logical ifprjp
 
+      real tmp0, tmp1, tmp2, tmp3
+
       ifprjp=.false.    ! Project out previous pressure solutions?
       istart=param(95)  
       if (istep.ge.istart.and.istart.ne.0) ifprjp=.true.
@@ -344,13 +346,29 @@ c
       call ortho   (dp)
 
       i = 1 + ifield/ifldmhd
-      if (ifprjp)   call setrhsp  (dp,h1,h2,h2inv,pset(1,i),nprv(i))
+      if (ifprjp) then
+         if(iftimers) tmp0=dnekclock_sync()
+         call setrhsp  (dp,h1,h2,h2inv,pset(1,i),nprv(i))
+         if(iftimers) then
+            tmp1=dnekclock_sync()
+            tpresproj1=tpresproj1+(tmp1-tmp0)
+         endif
+      endif
+
                     scaledt = dt/bd(1)
                     scaledi = 1./scaledt
                     call cmult(dp,scaledt,ntot2)        ! scale for tol
                     call esolver  (dp,h1,h2,h2inv,intype)
                     call cmult(dp,scaledi,ntot2)
-      if (ifprjp)   call gensolnp (dp,h1,h2,h2inv,pset(1,i),nprv(i))
+
+      if (ifprjp) then
+         if (iftimers) tmp2=dnekclock_sync()
+         call gensolnp (dp,h1,h2,h2inv,pset(1,i),nprv(i))
+         if(iftimers) then
+            tmp3=dnekclock_sync()
+            tpresproj2=tpresproj2+(tmp3-tmp2)
+         endif
+      endif
 
       call add2(up,dp,ntot2)
 
@@ -362,6 +380,14 @@ c
       if (ifmhd)  call chkptol	! to avoid repetition
 
       tpres=tpres+(dnekclock()-etime1)
+
+      if (iftimers) then
+          if (ifprjp) then
+             tpresproj = tpresproj + (dnekclock()-etime1)
+         else
+             tpresnoproj = tpresnoproj + (dnekclock()-etime1)
+         endif      
+      endif
 
       return
       end
