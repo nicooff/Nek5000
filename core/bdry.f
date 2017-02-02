@@ -152,9 +152,6 @@ C
          WRITE (6,*) 'IFGEOM   =',IFGEOM
          WRITE (6,*) 'IFSURT   =',IFSURT
          WRITE (6,*) 'IFWCNO   =',IFWCNO
-         WRITE (6,*) 'IFCMT    =',IFCMT
-         WRITE (6,*) 'IFVISC   =',IFVISC
-         WRITE (6,*) 'IFFLTR   =',IFFLTR
 
          DO 500 IFIELD=1,NFIELD
             WRITE (6,*) '  '
@@ -388,6 +385,12 @@ C
          do 50 iel=1,nelt
          do 50 iface=1,nfaces
             cb=cbc(iface,iel,ifield)
+            if ((cb.eq.'o  ' .and. IFSPLIT) .or.
+     $          (cb.eq.'on ' .and. IFSPLIT)) then
+               if (nid.eq.0) write(6,*)
+     $              "Error: BC 'o' and 'on' not supported for PN-PN."
+               call exitt
+            endif
             if (cb.eq.'O  ' .or. cb.eq.'ON ' .or.
      $          cb.eq.'o  ' .or. cb.eq.'on ')
      $         call facev(pmask,iel,iface,0.0,nx1,ny1,nz1)
@@ -441,7 +444,8 @@ C
      $            CALL FACEV (V3MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
              GOTO 100
          ENDIF
-         IF (CB.EQ.'ON ') THEN
+
+         IF (CB.EQ.'ON ' .OR. CB.EQ.'on ') THEN
              IF ( IFNORY .OR. IFNORZ )
      $            CALL FACEV (V1MASK,IEL,IFACE,0.0,NX1,NY1,NZ1)
              IF ( .NOT.IFALGN .OR. IFNORX .OR. IFNORZ )
@@ -791,7 +795,7 @@ C
             IF (CB.EQ.'KD ') CALL FACEV (TMP,IE,IFACE,BCK,NX1,NY1,NZ1)
             IF (CB.EQ.'ED ') CALL FACEV (TMP,IE,IFACE,BCE,NX1,NY1,NZ1)
             IF (CB.EQ.'t  ' .OR. CB.EQ.'kd ' .or.
-     $          CB.EQ.'ed ' .or. cb.eq.'o  ') 
+     $          CB.EQ.'ed ' .or. cb.eq.'o  ' .or. cb.eq.'on ') 
      $          CALL FACEIS (CB,TMP(1,1,1,IE),IE,IFACE,NX1,NY1,NZ1)
  2010    CONTINUE
 C
@@ -983,7 +987,7 @@ C     Passive scalar term
   100    CONTINUE
          RETURN
 
-      elseif (cb.eq.'o  ') then
+      elseif (cb.eq.'o  ' .or. cb.eq.'on ') then
          DO 101 IZ=KZ1,KZ2                           !  11/19/2010: The tmask() screen
          DO 101 IY=KY1,KY2                           !  added here so users can leave
          DO 101 IX=KX1,KX2                           !  certain points to be Neumann,
@@ -1189,9 +1193,7 @@ C
       INCLUDE 'TSTEP'
       INCLUDE 'NEKUSE'
 
-      INCLUDE 'CMTDATA' ! irho, etc.,            ! JH062414 CMT only
-
-      integer e,eqnum
+      integer e
 
       common  /nekcb/ cb
       character cb*3
@@ -1224,28 +1226,6 @@ C
       utrans= vtrans(ix,iy,iz,e,ifield)
 
       cbu   = cb
-
-      if (ifcmt) then                            ! JH081415 CMT only
-
-         do eqnum=1,toteq
-            varsic(eqnum)=u(ix,iy,iz,eqnum,e)  
-         enddo
-         phi  = phig  (ix,iy,iz,e)
-         rho  = vtrans(ix,iy,iz,e,irho)
-         pres = pr    (ix,iy,iz,e)
-         if (rho.ne.0) then
-            cv   = vtrans(ix,iy,iz,e,icv)/rho
-            cp   = vtrans(ix,iy,iz,e,icp)/rho
-         endif
-         asnd = csound(ix,iy,iz,e)
-
-         if (ifvisc) then ! lol stride
-            mu     = vdiff(ix,iy,iz,e,imu)
-            udiff  = vdiff(ix,iy,iz,e,iknd)
-            lambda = vdiff(ix,iy,iz,e,ilam)
-         endif
-
-      endif                                     ! JH081415 CMT only
 
       return
       end
@@ -2181,7 +2161,7 @@ c
             do 10 iy=ky1,ky2
             do 10 ix=kx1,kx2
                ia =ia + 1
-               dtmp = tx(ix,iy,iz,iel)*unx(ia,1,iface,iel)
+               dtmp =   tx(ix,iy,iz,iel)*unx(ia,1,iface,iel)
      $                + ty(ix,iy,iz,iel)*uny(ia,1,iface,iel)
      $                + tz(ix,iy,iz,iel)*unz(ia,1,iface,iel)
                flux(ix,iy,iz,iel) = flux(ix,iy,iz,iel)

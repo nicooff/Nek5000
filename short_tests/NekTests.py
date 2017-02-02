@@ -8,7 +8,7 @@ from unittest import skip
 
 class Axi(NekTestCase):
     example_subdir  = 'axi'
-    case_name       = 'axi'
+    case_name        = 'axi'
 
     def setUp(self):
 
@@ -35,7 +35,6 @@ class Axi(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '80',
             lgmres    = '40',
@@ -142,7 +141,6 @@ class Benard_Ray9(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '20',
             lgmres    = '20',
@@ -236,7 +234,6 @@ class Benard_RayDD(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '20',
             lgmres    = '20',
@@ -265,9 +262,11 @@ class Benard_RayDD(NekTestCase):
             source_root = self.source_root,
             usr_file    = 'ray_cr',
             cwd         = os.path.join(self.examples_root, 'benard', 'benard_split'),
-            f77         = self.f77,
-            cc          = self.cc,
-            ifmpi       = str(self.ifmpi).lower(),
+            opts        = dict(
+                F77   = self.f77,
+                CC    = self.cc,
+                IFMPI = str(self.ifmpi).lower(),
+            ),
         )
         lib.nekBinRun.run_nek(
             cwd        = os.path.join(self.examples_root, 'benard', 'benard_split'),
@@ -353,7 +352,6 @@ class Benard_RayDN(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '20',
             lgmres    = '20',
@@ -382,10 +380,12 @@ class Benard_RayDN(NekTestCase):
             source_root = self.source_root,
             usr_file    = 'ray_cr',
             cwd         = os.path.join(self.examples_root, 'benard', 'benard_split'),
-            f77         = self.f77,
-            cc          = self.cc,
-            ifmpi       = str(self.ifmpi).lower(),
-            )
+            opts        = dict(
+                F77   = self.f77,
+                CC    = self.cc,
+                IFMPI = str(self.ifmpi).lower(),
+            ),
+        )
         lib.nekBinRun.run_nek(
             cwd        = os.path.join(self.examples_root, 'benard', 'benard_split'),
             rea_file   = 'ray_dn',
@@ -394,7 +394,7 @@ class Benard_RayDN(NekTestCase):
             n_procs    = self.mpi_procs,
             verbose    = self.verbose,
             step_limit = None,
-            )
+        )
 
         logfile=os.path.join(
             self.examples_root,
@@ -469,7 +469,6 @@ class Benard_RayNN(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '20',
             lgmres    = '20',
@@ -498,10 +497,12 @@ class Benard_RayNN(NekTestCase):
             source_root = self.source_root,
             usr_file    = 'ray_cr',
             cwd         = os.path.join(self.examples_root, 'benard', 'benard_split'),
-            f77         = self.f77,
-            cc          = self.cc,
-            ifmpi       = str(self.ifmpi).lower(),
-            )
+            opts        = dict(
+                F77   = self.f77,
+                CC    = self.cc,
+                IFMPI = str(self.ifmpi).lower(),
+            ),
+        )
         lib.nekBinRun.run_nek(
             cwd        = os.path.join(self.examples_root, 'benard', 'benard_split'),
             rea_file   = 'ray_nn',
@@ -510,7 +511,7 @@ class Benard_RayNN(NekTestCase):
             n_procs    = self.mpi_procs,
             verbose    = self.verbose,
             step_limit = None,
-            )
+        )
 
         logfile=os.path.join(
             self.examples_root,
@@ -565,7 +566,7 @@ class Benard_RayNN(NekTestCase):
 
 class Eddy_EddyUv(NekTestCase):
     example_subdir  = 'eddy'
-    case_name       = 'eddy_uv'
+    case_name        = 'eddy_uv'
 
     def setUp(self):
 
@@ -592,7 +593,6 @@ class Eddy_EddyUv(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '20',
             lgmres    = '30',
@@ -732,7 +732,6 @@ class KovStState(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '20',
             lgmres    = '40',
@@ -810,7 +809,6 @@ class LowMachTest(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '1',
             mxprev    = '20',
             lgmres    = '30',
@@ -851,8 +849,8 @@ class LowMachTest(NekTestCase):
         vx = self.get_value_from_log(label='ERROR VX', column=-5, row=-1)
         self.assertAlmostEqualDelayed(vx, target_val=2.4635E-09, delta=1e-06, label='VX')
 
-        t = self.get_value_from_log(label='ERROR T', column=-5, row=-1)
-        self.assertAlmostEqualDelayed(t, target_val=4.5408E-12, delta=1e-06, label='T')
+        errt = self.get_value_from_log(label='ERROR T', column=-5, row=-1)
+        self.assertAlmostEqualDelayed(errt, target_val=4.5408E-12, delta=1e-06, label='T')
 
         qtl = self.get_value_from_log(label='ERROR QTL', column=-5, row=-1)
         self.assertAlmostEqualDelayed(qtl, target_val=2.6557E-06, delta=1e-06, label='QTL')
@@ -872,8 +870,8 @@ class LowMachTest(NekTestCase):
         vx = self.get_value_from_log(label='ERROR VX', column=-5, row=-1)
         self.assertAlmostEqualDelayed(vx, target_val=2.4635E-09, delta=1e-06, label='VX')
 
-        t = self.get_value_from_log(label='ERROR T', column=-5, row=-1)
-        self.assertAlmostEqualDelayed(t, target_val=4.5408E-12, delta=1e-06, label='T')
+        errt = self.get_value_from_log(label='ERROR T', column=-5, row=-1)
+        self.assertAlmostEqualDelayed(errt, target_val=4.5408E-12, delta=1e-06, label='T')
 
         qtl = self.get_value_from_log(label='ERROR QTL', column=-5, row=-1)
         self.assertAlmostEqualDelayed(qtl, target_val=2.6557E-06, delta=1e-06, label='QTL')
@@ -900,6 +898,99 @@ class LowMachTest(NekTestCase):
 
         phrase = self.get_phrase_from_log("ABORT: For lowMach,")
         self.assertIsNotNullDelayed(phrase, label='ABORT: ')
+        self.assertDelayedFailures()
+
+    def tearDown(self):
+        self.move_logs()
+
+
+####################################################################
+#  mv_cyl with CVODE
+####################################################################
+
+class MvCylCvode(NekTestCase):
+    example_subdir = 'mv_cyl'
+    case_name = 'mv_cyl'
+
+    def setUp(self):
+        self.size_params = dict (
+            ldim     = '2',
+            lx1      = '8',
+            lxd      = '12',
+            lx2      = 'lx1-0',
+            lx1m     = 'lx1',
+            lelg     = '520',
+            lp       = '64',
+            lelt     = '200',
+            ldimt    = '10',
+            lelx     = '1',
+            lely     = '1',
+            lelz     = '1',
+            ax1      = '1',
+            ax2      = '1',
+            lbx1     = '1',
+            lbx2     = '1',
+            lbelt    = '1',
+            lpx1     = '1',
+            lpx2     = '1',
+            lpelt    = '1',
+            lpert    = '1',
+            lelecmt  = '',
+            toteq    = '1',
+            lcvx1    = 'lx1',
+            lcvelt   = 'lelt',
+            mxprev   = '20',
+            lgmres   = '40',
+            lorder   = '3',
+            lhis     = '100',
+            maxobj   = '4',
+            maxmbr   = 'lelt*6',
+            nsessmax = '1',
+            nmaxl    = '1',
+            nfldmax  = '1',
+            nmaxcom  = '1',
+        )
+        self.build_tools(['genmap'])
+        self.run_genmap()
+
+    @pn_pn_parallel
+    def test_PnPn_Parallel_Steps1e3(self):
+        if not "CVODE" in self.pplist:
+            self.fail("\"CVODE\" is not listed in $PPLIST. This test cannot be run.".format(self.id()))
+
+        self.log_suffix += '.steps_1e3'
+        self.config_parfile({'GENERAL' : {'numSteps' : '1e3', 'dt' : '1e-3'}})
+        self.size_params['lx2'] = 'lx1'
+        self.config_size()
+        self.build_nek()
+        self.run_nek()
+
+        err3 = self.get_value_from_log('err', column=-3, row=-1)
+        self.assertAlmostEqualDelayed(err3, target_val=0.1743079E-03, delta=1e-6, label='err (column -3)')
+
+        err2 = self.get_value_from_log('err', column=-2, row=-1)
+        self.assertAlmostEqualDelayed(err2, target_val=0.6348537E-06, delta=1e-9, label='err (column -2)')
+
+        self.assertDelayedFailures()
+
+    @pn_pn_parallel
+    def test_PnPn_Parallel_Steps1e4(self):
+        if not "CVODE" in self.pplist:
+            self.fail("\"CVODE\" is not listed in $PPLIST. This test cannot be run.".format(self.id()))
+
+        self.log_suffix += '.steps_1e4'
+        self.config_parfile({'GENERAL' : {'numSteps' : '1e4', 'dt' : '1e-4'}})
+        self.size_params['lx2'] = 'lx1'
+        self.config_size()
+        self.build_nek()
+        self.run_nek()
+
+        err3 = self.get_value_from_log('err', column=-3, row=-1)
+        self.assertAlmostEqualDelayed(err3, target_val=0.1693853E-05, delta=1e-8, label='err (column -3)')
+
+        err2 = self.get_value_from_log('err', column=-2, row=-1)
+        self.assertAlmostEqualDelayed(err2, target_val=0.6344692E-09, delta=1e-12, label='err (column -2)')
+
         self.assertDelayedFailures()
 
     def tearDown(self):
@@ -937,7 +1028,6 @@ class VarVis(NekTestCase):
             lpx2      = '1',
             lpelt     = '1',
             lpert     = '1',
-            lelecmt   = '',
             toteq     = '',
             mxprev    = '20',
             lgmres    = '30',
@@ -1008,6 +1098,49 @@ class VarVis(NekTestCase):
 
     def tearDown(self):
         self.move_logs()
+
+
+class CmtInviscidVortex(NekTestCase):
+    example_subdir = os.path.join('CMT', 'inviscid_vortex')
+    case_name = 'pvort'
+
+    def diff_l2norms(self):
+        def get_line(filename, line_num=0):
+            with open(filename) as f:
+                line = f.readlines()[line_num]
+            return [float(x) for x in line.split()[1:]]
+
+        cls = self.__class__
+        test_vals = get_line(os.path.join(self.examples_root, cls.example_subdir, 'l2norms.dat'))
+        ref_vals = get_line(os.path.join(self.examples_root, cls.example_subdir, 'l2norms.dat.ref'))
+        for t, r in zip(test_vals, ref_vals):
+            self.assertAlmostEqual(t, r, delta=0.1*r,
+                msg='FAILURE: Last line of l2norms.dat differed from reference values by > 10%\n  test vals:{0}\n  ref vals: {1}'.format(test_vals, ref_vals))
+        print('SUCCESS: Last line of l2norms.dat was within 10% of reference values\n  test vals:{0}\n  ref vals: {1}'.format(test_vals, ref_vals))
+
+    def setUp(self):
+        cls = self.__class__
+        try:
+            os.remove(os.path.join(self.examples_root, cls.example_subdir, 'l2norms.dat'))
+        except OSError:
+            pass
+
+    @pn_pn_serial
+    def test_PnPn_Serial(self):
+        if "CMTNEK" not in self.pplist:
+            self.fail("\"CMTNEK\" is not listed in $PPLIST. This test cannot be run.".format(self.id()))
+        self.build_nek()
+        self.run_nek(step_limit=1000)
+        self.diff_l2norms()
+
+    @pn_pn_parallel
+    def test_PnPn_Parallel(self):
+        if "CMTNEK" not in self.pplist:
+            self.fail("\"CMTNEK\" is not listed in $PPLIST. This test cannot be run.".format(self.id()))
+        self.build_nek()
+        self.run_nek(step_limit=1000)
+        self.diff_l2norms()
+
 
 if __name__ == '__main__':
     import unittest, argparse, os
