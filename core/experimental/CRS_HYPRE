@@ -1,0 +1,17 @@
+c-----------------------------------------------------------------------
+      integer*8 hypre_solver(ldimt3), hypre_A(ldimt3),
+     $     hypre_x(ldimt3), hypre_b(ldimt3)
+      integer hypre_gsh(ldimt3), hypre_ilower(ldimt3),
+     $	      hypre_nrows(ldimt3), hypre_map(lelt,ldimt3)
+      common /hyprei8/ hypre_solver, hypre_A, hypre_x, hypre_b
+      common /hyprei/ hypre_gsh, hypre_ilower, hypre_nrows, hypre_map
+
+c-----------------------------------------------------------------------
+      integer*8 hypre_solver_strs, hypre_A_strs,
+     $     hypre_x_strs, hypre_b_strs
+      integer hypre_gsh_strs, hypre_ilower_strs, hypre_nrows_strs,
+     $	      hypre_map_strs(lelt)
+      common /hypre_strsi8/ hypre_solver_strs, hypre_A_strs,
+     $	     hypre_x_strs, hypre_b_strs
+      common /hypre_strsi/ hypre_gsh_strs, hypre_ilower_strs,
+     $	     hypre_nrows_strs, hypre_map_strs

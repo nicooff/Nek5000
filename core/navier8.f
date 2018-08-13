@@ -48,7 +48,13 @@ c
       common /scrpre/ uc(lcr*lelt),w(2*lx1*ly1*lz1)
 
       call map_f_to_c_l2_bilin(uf,vf,w)
-      call fgslib_crs_solve(xxth(ifield),uc,uf)
+
+      if (param(40).lt.2) then
+         call fgslib_crs_solve(xxth(ifield),uc,uf)
+      elseif (param(40).eq.2) then
+         call hypre_crs_solve(ifield,uc,uf)
+      endif
+
       call map_c_to_f_l2_bilin(uf,uc,w)
 
       return
@@ -201,11 +207,20 @@ c      endif
       endif
 
       nz=ncr*ncr*nelv
+
       imode = param(40) 
 
-      call fgslib_crs_setup(xxth(ifield),imode,nekcomm,mp,ntot,
-     $                      se_to_gcrs,nz,ia,ja,a, null_space)
+      if (imode.eq.0 .and. nelgt.gt.350000) call exitti(
+     $ 'Problem size requires AMG solver$',1)
 
+      if (imode.lt.2) then
+         call fgslib_crs_setup(xxth(ifield),imode,nekcomm,mp,ntot,
+     $                         se_to_gcrs,nz,ia,ja,a, null_space)
+c     call fgslib_crs_stats(xxth(ifield))
+      elseif (imode.eq.2) then
+         call hypre_crs_setup(ifield,nekcomm,a,nxc,mp)
+      endif
+      
       t0 = dnekclock()-t0
       if (nio.eq.0) then
          write(6,*) 'done :: setup h1 coarse grid ',t0, ' sec'
@@ -1357,7 +1372,13 @@ c
 #ifdef TIMER
       etime1=dnekclock()
 #endif
-      call fgslib_crs_solve(xxth(ifield),uc,vc)
+
+      if (param(40).lt.2) then
+         call fgslib_crs_solve(xxth(ifield),uc,vc)
+      elseif (param(40).eq.2) then
+         call hypre_crs_solve(uc,vc)
+      endif
+      
 #ifdef TIMER
       tcrsl=tcrsl+dnekclock()-etime1
 #endif
@@ -1623,7 +1644,7 @@ c-----------------------------------------------------------------------
       icalld = 1
 
       if (ifgtp) then
-         call gen_gtp_vertex(vertex, ncrnr)
+         call gen_gtp_vertex    (vertex, ncrnr)
       else
          call get_vert
       endif

@@ -1363,9 +1363,14 @@ c
       ncrsl  = ncrsl  + 1
       etime1=dnekclock()
 
-
-      call fgslib_crs_solve(xxth(ifield),e,r)
-
+      if (param(40).lt.2) then
+         call fgslib_crs_solve(xxth(ifield),e,r)
+#ifdef HYPRE         
+      elseif (param(40).eq.2) then
+         call hypre_crs_solve(ifield,e,r)
+#endif         
+      endif
+      
       tcrsl=tcrsl+dnekclock()-etime1
 
 

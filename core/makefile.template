@@ -45,7 +45,8 @@ papi.o nek_in_situ.o \
 reader_rea.o reader_par.o reader_re2.o \
 finiparser.o iniparser.o dictionary.o \
 hpf.o \
-sparse_cholesky.o fcrs.o xxt.o amg.o ranking.o fem_amg_preco.o
+sparse_cholesky.o fcrs.o xxt.o amg.o ranking.o fem_amg_preco.o \
+crs_hypre.o
 ################################################################################
 # MXM 
 MXM =  
@@ -209,6 +210,7 @@ $(OBJDIR)/reader_par.o	:$S/reader_par.f $S/PARDICT;	$(FC) -c $(FL2) $< -o $@
 $(OBJDIR)/reader_re2.o	:$S/reader_re2.f;		$(FC) -c $(FL2) $< -o $@
 $(OBJDIR)/hpf.o	       	:$S/hpf.f;         		$(FC) -c $(FL2) $< -o $@
 $(OBJDIR)/ranking.o	:$S/ranking.f;         		$(FC) -c $(FL2) $< -o $@
+$(OBJDIR)/crs_hypre.o   :$S/experimental/crs_hypre.f;   $(FC) -c $(FL2) $(HYPRE_IFLAGS) $< -o $@
 
 # CMT CORE     ##################################################################
 $(OBJDIR)/step.o	:$(SCMT)/step.f;        	$(FC) -c $(FL2) $< -o $@

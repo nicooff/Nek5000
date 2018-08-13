@@ -441,6 +441,8 @@ c set parameters
             param(40) = 1
          else if (index(c_out,'SEMG_XXT') .eq. 1) then
             param(40) = 0
+         else if (index(c_out,'SEMG_HYPRE') .eq. 1) then
+            param(40) = 2
          else if (index(c_out,'FEM_AMG_HYPRE') .eq. 1) then
             param(40) = 3
          else
