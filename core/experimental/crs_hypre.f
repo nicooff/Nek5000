@@ -272,25 +272,20 @@ c     Fill in Hypre matrix
 c     Assemble matrix
       call HYPRE_IJMatrixAssemble(ij_A,ierr)
 
-      write(6,*) 'HELLO -1'
-
-      call HYPRE_IJMatrixPrint(ij_A,'foo',ierr)
-
 c     Create AMG solver
       call HYPRE_BoomerAMGCreate(solver,ierr)
 
 c     Set AMG parameters
       call HYPRE_BoomerAMGSetPrintLevel(solver,1,ierr) ! Verbose level: nothing(->0)/setup info(->1)/solver info(->2)/both(->3)
       call HYPRE_BoomerAMGSetCoarsenType(solver,8,ierr) ! PMIS
-      call HYPRE_BoomerAMGSetInterpType(solver,6,ierr) ! extended+i interpolation
+c      call HYPRE_BoomerAMGSetInterpType(solver,6,ierr) ! extended+i interpolation
+      call HYPRE_BoomerAMGSetInterpType(solver,14,ierr) ! extended interpolation
       call HYPRE_BoomerAMGSetRelaxType(solver,8,ierr) ! l1-scaled hybrid symmetric Gauss-Seidel
       call HYPRE_BoomerAMGSetMaxCoarseSize(solver,5,ierr) 
       call HYPRE_BoomerAMGSetStrongThrshld(solver,0.25,ierr) ! Increase for better convergence. Decrease for faster solver time.
       call HYPRE_BoomerAMGSetMeasureType(solver,1,ierr) ! Local(->0)/Global(->1) measure
-      call HYPRE_BoomerAMGSetTol(solver,1.e-3,ierr) ! Decrease for better convergence. Increase for faster solver time.
-      call HYPRE_BoomerAMGSetMaxIter(solver,3,ierr) ! Increase for better convergence. Decrease for faster solver time.
-
-      write(6,*) 'HELLO 0'
+c      call HYPRE_BoomerAMGSetTol(solver,1.e-3,ierr) ! Decrease for better convergence. Increase for faster solver time.
+      call HYPRE_BoomerAMGSetMaxIter(solver,2,ierr) ! Increase for better convergence. Decrease for faster solver time.
 
 c     Create and initialize rhs and solution vectors
       call HYPRE_IJVectorCreate(comm,jlower,jupper,ij_b,ierr)
@@ -298,26 +293,18 @@ c     Create and initialize rhs and solution vectors
       call HYPRE_IJVectorInitialize(ij_b,ierr)
       call HYPRE_IJVectorAssemble(ij_b,ierr)
       
-      write(6,*) 'HELLO 1'
-
       call HYPRE_IJVectorCreate(comm,jlower,jupper,ij_x,ierr)
       call HYPRE_IJVectorSetObjectType(ij_x,HYPRE_PARCSR,ierr)
       call HYPRE_IJVectorInitialize(ij_x,ierr)
       call HYPRE_IJVectorAssemble(ij_x,ierr)
-
-      write(6,*) 'HELLO 2'
 
 c     Perform AMG setup
       call HYPRE_IJMatrixGetObject(ij_A,par_A,ierr)
       call HYPRE_IJVectorGetObject(ij_b,par_b,ierr)
       call HYPRE_IJVectorGetObject(ij_x,par_x,ierr)      
 
-      write(6,*) 'HELLO 3'
-
       call HYPRE_BoomerAMGSetup(solver,par_A,par_b,par_x,ierr)
 
-      write(6,*) 'HELLO 4'
-      
       return
       end
 c-----------------------------------------------------------------------
