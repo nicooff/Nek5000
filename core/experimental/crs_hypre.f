@@ -145,33 +145,32 @@ c-----------------------------------------------------------------------
       include 'HYPREf.h'
 
 c     Arguments list
-      integer*8 solver,ij_A,ij_x,ij_b
-      integer gsh,un,crs2hypre(lelt)
-      integer comm,nxc,np
+      integer*8 solver,ij_A,ij_x,ij_b,un,ilower
+      integer gsh,crs2hypre(lelt),comm,nxc,np
       real a(lcr,lcr,lelv)
 
 c     Hypre data
       integer glhid(lcr,lelv) ! global Hypre id
       integer*8 par_A,par_x,par_b
-      integer ilower,iupper,jlower,jupper
-      integer nrows,ncols,rows,cols
+      integer*8 iupper,jlower,jupper,nrows,ncols,rows,cols
+      integer*8 ierr
       real values
-      integer ierr
       
 c     GS data 
       integer*8 uid(lcr,lelv) ! unique id array
       
 c     Crystal router data
       integer crh,nmax
-      parameter (nmax=2*lcr*lcr*(lelv+100)) ! somewhat arbitrary value
-      integer vi(lcr+2,nmax) ! scratch array?
+      parameter (nmax=1.2*lcr*(lelv+20)) ! somewhat arbitrary value
+      integer vi(lcr+2,nmax)
       integer*8 vl
-      real vr(lcr,nmax) ! scratch array?
+      real vr(lcr,nmax)
 
 c     Other
-      integer ir,ic,iel,icr,idh,ncr,ncrv,n,nowned
+      integer ir,ic,iel,icr,idh,ncr,ncrv,n
       integer igl_running_sum
       integer pid_owner(lcr,lelv)
+      integer*8 i8
 
       common /scrxxti/ glhid,pid_owner
 
@@ -184,23 +183,22 @@ c     Unique handle to determine node ownership
       call fgslib_gs_setup(gsh,uid,ncrv,comm,np)
 
 c     Identify process id of owner
-      nowned = 0
+      un = 0
       do iel=1,nelv
          do icr=1,ncr
             if (uid(icr,iel).gt.0) then
                pid_owner(icr,iel)=nid
-               nowned=nowned+1
+               un=un+1
             else
                pid_owner(icr,iel)=0
             endif 
          enddo
       enddo
-      un=nowned
       call fgslib_gs_op(gsh,pid_owner,2,1,0) ! scatter
 
 c     Renumber nodes according to Hypre's requirement
-      iupper=igl_running_sum(nowned)
-      ilower=iupper-nowned+1
+      iupper=igl_running_sum(un)
+      ilower=iupper-un+1
       jlower=ilower
       jupper=iupper
 
@@ -245,13 +243,14 @@ c     Transfer local matrix to process owner
 
       if (n.gt.nmax) then
          call exitti('Error when building CRS matrix: n>nmax.
-     $ Increase nmax.$',1)
+     $ Increase nmax.$',nmax)
       endif
 
 c     Initialize Hypre matrix
-      call HYPRE_IJMatrixCreate(comm,ilower,iupper,
-     $     jlower,jupper,ij_A,ierr)
-      call HYPRE_IJMatrixSetObjectType(ij_A,HYPRE_PARCSR,ierr)
+      call HYPRE_IJMatrixCreate(comm,ilower,iupper,jlower,jupper,ij_A,
+     $     ierr)
+      call HYPRE_IJMatrixSetObjectType(ij_A,int(HYPRE_PARCSR,kind(i8)),
+     $     ierr)
       call HYPRE_IJMatrixInitialize(ij_A,ierr)
       
 c     Fill in Hypre matrix
@@ -276,25 +275,26 @@ c     Create AMG solver
       call HYPRE_BoomerAMGCreate(solver,ierr)
 
 c     Set AMG parameters
-      call HYPRE_BoomerAMGSetPrintLevel(solver,1,ierr) ! Verbose level: nothing(->0)/setup info(->1)/solver info(->2)/both(->3)
-      call HYPRE_BoomerAMGSetCoarsenType(solver,8,ierr) ! PMIS
-c      call HYPRE_BoomerAMGSetInterpType(solver,6,ierr) ! extended+i interpolation
-      call HYPRE_BoomerAMGSetInterpType(solver,14,ierr) ! extended interpolation
-      call HYPRE_BoomerAMGSetRelaxType(solver,8,ierr) ! l1-scaled hybrid symmetric Gauss-Seidel
-      call HYPRE_BoomerAMGSetMaxCoarseSize(solver,5,ierr) 
-      call HYPRE_BoomerAMGSetStrongThrshld(solver,0.25,ierr) ! Increase for better convergence. Decrease for faster solver time.
-      call HYPRE_BoomerAMGSetMeasureType(solver,1,ierr) ! Local(->0)/Global(->1) measure
-c      call HYPRE_BoomerAMGSetTol(solver,1.e-3,ierr) ! Decrease for better convergence. Increase for faster solver time.
-      call HYPRE_BoomerAMGSetMaxIter(solver,2,ierr) ! Increase for better convergence. Decrease for faster solver time.
+      call HYPRE_BoomerAMGSetPrintLevel(solver,int(1,kind(i8)),ierr) ! Verbose level: nothing(->0)/setup info(->1)/solver info(->2)/both(->3)
+      call HYPRE_BoomerAMGSetCoarsenType(solver,int(8,kind(i8)),ierr) ! PMIS
+      call HYPRE_BoomerAMGSetInterpType(solver,int(14,kind(i8)),ierr) ! extended interpolation
+      call HYPRE_BoomerAMGSetRelaxType(solver,int(8,kind(i8)),ierr) ! l1-scaled hybrid symmetric Gauss-Seidel
+      call HYPRE_BoomerAMGSetMaxCoarseSize(solver,int(5,kind(i8)),ierr) 
+      call HYPRE_BoomerAMGSetStrongThrshld(solver,0.5,ierr) ! Increase for better convergence. Decrease for faster solver time.
+      call HYPRE_BoomerAMGSetMeasureType(solver,int(1,kind(i8)),ierr) ! Local(->0)/Global(->1) measure
+      call HYPRE_BoomerAMGSetTol(solver,0.,ierr) ! Decrease for better convergence. Increase for faster solver time.
+      call HYPRE_BoomerAMGSetMaxIter(solver,int(1,kind(i8)),ierr) ! Increase for better convergence. Decrease for faster solver time.
 
 c     Create and initialize rhs and solution vectors
       call HYPRE_IJVectorCreate(comm,jlower,jupper,ij_b,ierr)
-      call HYPRE_IJVectorSetObjectType(ij_b,HYPRE_PARCSR,ierr)
+      call HYPRE_IJVectorSetObjectType(ij_b,int(HYPRE_PARCSR,kind(i8)),
+     $     ierr)
       call HYPRE_IJVectorInitialize(ij_b,ierr)
       call HYPRE_IJVectorAssemble(ij_b,ierr)
       
       call HYPRE_IJVectorCreate(comm,jlower,jupper,ij_x,ierr)
-      call HYPRE_IJVectorSetObjectType(ij_x,HYPRE_PARCSR,ierr)
+      call HYPRE_IJVectorSetObjectType(ij_x,int(HYPRE_PARCSR,kind(i8)),
+     $     ierr)
       call HYPRE_IJVectorInitialize(ij_x,ierr)
       call HYPRE_IJVectorAssemble(ij_x,ierr)
 
@@ -329,19 +329,22 @@ c-----------------------------------------------------------------------
 
 c     Arguments list      
       integer*8 solver,ij_A,ij_x,ij_b
-      integer hil,un,gsh,crs2hypre(lelt)
+      integer*8 hil,un
+      integer crs2hypre(lelt)
+      integer gsh
       real x(1),b(1)
 
 c     Local variables      
       integer*8 par_A,par_x,par_b
-      integer ierr,i,ir
+      integer*8 ierr,i,ir,i8
       
       call fgslib_gs_op(gsh,b,1,1,1) ! gather
 
       do i=1,un
          ir=hil+i-1
-         call HYPRE_IJVectorSetValues(ij_b,1,ir,b(crs2hypre(i)),ierr)
-         call HYPRE_IJVectorSetValues(ij_x,1,ir,0.,ierr)
+         call HYPRE_IJVectorSetValues(ij_b,int(1,kind(i8)),ir,
+     $        b(crs2hypre(i)),ierr)
+         call HYPRE_IJVectorSetValues(ij_x,int(1,kind(i8)),ir,0.,ierr)
       enddo
 
       call HYPRE_IJVectorAssemble(ij_b,ierr)
@@ -355,7 +358,8 @@ c     Local variables
 
       do i=1,un
          ir=hil+i-1
-         call HYPRE_IJVectorGetValues(ij_x,1,ir,x(crs2hypre(i)),ierr)
+         call HYPRE_IJVectorGetValues(ij_x,int(1,kind(i8)),ir,
+     $        x(crs2hypre(i)),ierr)
       enddo
 
       call fgslib_gs_op(gsh,x,1,1,0) ! scatter
@@ -379,7 +383,7 @@ c     Arguments list
       integer gsh
 
 c     Local variables     
-      integer ierr
+      integer*8 ierr
 
       call HYPRE_BoomerAMGDestroy(solver,ierr)
       call HYPRE_IJMatrixDestroy(ij_A,ierr)
