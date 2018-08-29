@@ -168,7 +168,7 @@ c     Crystal router data
 
 c     Other
       integer ir,ic,iel,icr,idh,ncr,ncrv,n
-      integer igl_running_sum
+      integer*8 i8gl_running_sum
       integer pid_owner(lcr,lelv)
       integer*8 i8
 
@@ -197,7 +197,7 @@ c     Identify process id of owner
       call fgslib_gs_op(gsh,pid_owner,2,1,0) ! scatter
 
 c     Renumber nodes according to Hypre's requirement
-      iupper=igl_running_sum(un)
+      iupper=i8gl_running_sum(un)
       ilower=iupper-un+1
       jlower=ilower
       jupper=iupper
