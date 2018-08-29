@@ -168,9 +168,9 @@ c     Crystal router data
 
 c     Other
       integer ir,ic,iel,icr,idh,ncr,ncrv,n
-      integer*8 i8gl_running_sum
+      integer*8 i8gl_running_sum,i8glmax
       integer pid_owner(lcr,lelv)
-      integer*8 i8
+      integer*8 i8,unmin,unmax
 
       common /scrxxti/ glhid,pid_owner
 
@@ -195,6 +195,11 @@ c     Identify process id of owner
          enddo
       enddo
       call fgslib_gs_op(gsh,pid_owner,2,1,0) ! scatter
+
+      unmin = -i8glmax(-un,1)
+      unmax = i8glmax(un,1)
+      if (nid.eq.0) write(6,*) 'CRS imbalance: unmin, unmax ',
+     $     unmin,unmax
 
 c     Renumber nodes according to Hypre's requirement
       iupper=i8gl_running_sum(un)
