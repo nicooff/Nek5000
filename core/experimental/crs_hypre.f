@@ -161,7 +161,7 @@ c     GS data
       
 c     Crystal router data
       integer crh,nmax
-      parameter (nmax=1.2*lcr*(lelv+20)) ! somewhat arbitrary value
+      parameter (nmax=4*lcr*(lelv+100)) ! somewhat arbitrary value
       integer vi(lcr+2,nmax)
       integer*8 vl
       real vr(lcr,nmax)
