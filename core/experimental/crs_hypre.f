@@ -220,10 +220,6 @@ c     Renumber nodes according to Hypre's requirement
          enddo
       enddo
 
-      if ((idh-1).ne.iupper) then
-         call exitti('Error when building CRS matrix: idh~=iupper.$',1)
-      endif
-      
       call fgslib_gs_op(gsh,glhid,2,1,0) ! scatter
 
 c     Transfer local matrix to process owner
