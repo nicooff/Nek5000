@@ -160,14 +160,14 @@ c     GS data
       integer*8 uid(lcr,lelv) ! unique id array
       
 c     Crystal router data
-      integer crh,nmax
-      parameter (nmax=4*lcr*(lelv+100)) ! somewhat arbitrary value
-      integer vi(lcr+2,nmax)
+      integer crh,nmax,lmax
+      parameter (lmax=4*lcr*(lelv+100)) ! somewhat arbitrary value
+      integer vi(lcr+2,lmax)
       integer*8 vl
-      real vr(lcr,nmax)
+      real vr(lcr,lmax)
 
 c     Other
-      integer ir,ic,iel,icr,idh,ncr,ncrv,n
+      integer ir,ic,iel,icr,idh,ncr,ncrv,n,iglmax
       integer*8 i8gl_running_sum,i8glmax
       integer pid_owner(lcr,lelv)
       integer*8 i8,unmin,unmax
@@ -241,14 +241,20 @@ c     Transfer local matrix to process owner
       enddo
 
       n=ncrv
-      call fgslib_crystal_tuple_transfer(crh,n,nmax,vi,ncr+2,
+      call fgslib_crystal_tuple_transfer(crh,n,lmax,vi,ncr+2,
      $     vl,0,vr,ncr,ncr+2)
 
       call fgslib_crystal_free(crh)      
 
-      if (n.gt.nmax) then
-         call exitti('Error when building CRS matrix: n>nmax.
-     $ Increase nmax.$',nmax)
+      nmax = iglmax(n,1)
+      if (nid.eq.0) then
+         write(6,*) 'Crystal transfer in CRS setup: nmax, lmax ',
+     $        nmax,lmax
+      endif
+
+      if (nmax.gt.lmax) then
+         call exitti('Error when building CRS matrix: nmax>lmax.
+     $ Increase lmax.$',lmax)
       endif
 
 c     Initialize Hypre matrix
