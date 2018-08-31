@@ -288,13 +288,13 @@ c     Create AMG solver
 c     Set AMG parameters
       call HYPRE_BoomerAMGSetPrintLevel(solver,int(1,kind(i8)),ierr) ! Verbose level: nothing(->0)/setup info(->1)/solver info(->2)/both(->3)
       call HYPRE_BoomerAMGSetCoarsenType(solver,int(8,kind(i8)),ierr) ! PMIS
-      call HYPRE_BoomerAMGSetInterpType(solver,int(14,kind(i8)),ierr) ! extended interpolation
+      call HYPRE_BoomerAMGSetInterpType(solver,int(6,kind(i8)),ierr) ! extended+i interpolation
       call HYPRE_BoomerAMGSetRelaxType(solver,int(8,kind(i8)),ierr) ! l1-scaled hybrid symmetric Gauss-Seidel
       call HYPRE_BoomerAMGSetMaxCoarseSize(solver,int(5,kind(i8)),ierr) 
-      call HYPRE_BoomerAMGSetStrongThrshld(solver,0.5,ierr) ! Increase for better convergence. Decrease for faster solver time.
+      call HYPRE_BoomerAMGSetStrongThrshld(solver,0.4,ierr) ! Increase for better convergence. Decrease for faster solver time.
       call HYPRE_BoomerAMGSetMeasureType(solver,int(1,kind(i8)),ierr) ! Local(->0)/Global(->1) measure
-      call HYPRE_BoomerAMGSetTol(solver,0.,ierr) ! Decrease for better convergence. Increase for faster solver time.
-      call HYPRE_BoomerAMGSetMaxIter(solver,int(1,kind(i8)),ierr) ! Increase for better convergence. Decrease for faster solver time.
+      call HYPRE_BoomerAMGSetTol(solver,0.1,ierr) ! Decrease for better convergence. Increase for faster solver time.
+      call HYPRE_BoomerAMGSetMaxIter(solver,int(3,kind(i8)),ierr) ! Increase for better convergence. Decrease for faster solver time.
 
 c     Create and initialize rhs and solution vectors
       call HYPRE_IJVectorCreate(comm,jlower,jupper,ij_b,ierr)
