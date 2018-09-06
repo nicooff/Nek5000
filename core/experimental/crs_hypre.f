@@ -201,7 +201,7 @@ c     Identify process id of owner
       if (nid.eq.0) write(6,*) 'CRS imbalance: unmin, unmax ',
      $     unmin,unmax
 
-c     Renumber nodes according to Hypre's requirement
+c     Renumber nodes according to Hypre requirement
       iupper=i8gl_running_sum(un)
       ilower=iupper-un+1
       jlower=ilower
