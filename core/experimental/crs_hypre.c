@@ -84,14 +84,14 @@ struct hypre_crs_data *chypre_crs_setup( uint n, const ulong *id,
  
   // Set AMG parameters
   HYPRE_BoomerAMGSetPrintLevel(solver,1);
-  HYPRE_BoomerAMGSetCoarsenType(solver,3);
-  HYPRE_BoomerAMGSetInterpType(solver,0);
-  HYPRE_BoomerAMGSetRelaxType(solver,6);
+  HYPRE_BoomerAMGSetCoarsenType(solver,8);
+  HYPRE_BoomerAMGSetInterpType(solver,14);
+  HYPRE_BoomerAMGSetRelaxType(solver,8);
   HYPRE_BoomerAMGSetMaxCoarseSize(solver,5);
-  HYPRE_BoomerAMGSetStrongThreshold(solver,0.2);
+  HYPRE_BoomerAMGSetStrongThreshold(solver,0.4);
   HYPRE_BoomerAMGSetMeasureType(solver,1);
-  HYPRE_BoomerAMGSetTol(solver,0.000001);
-  HYPRE_BoomerAMGSetMaxIter(solver,50);
+  HYPRE_BoomerAMGSetTol(solver,0.1);
+  HYPRE_BoomerAMGSetMaxIter(solver,3);
 //  HYPRE_BoomerAMGSet...(solver,...);
  
   // Create and initialize rhs and solution vectors
