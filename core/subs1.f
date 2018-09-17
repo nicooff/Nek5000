@@ -1942,7 +1942,7 @@ c     Given an input vector v, this generates the H1 coarse-grid solution
       if (param(40).lt.2) then
          call fgslib_crs_solve(xxth_strs,uc1,vc1)
       elseif (param(40).eq.2) then
-         call hypre_crs_solve_strs(uc1,vc1)
+         call hypre_crs_solve(xxth_strs,uc1,vc1)
       endif
 
       tcrsl=tcrsl+dnekclock()-etime1
@@ -2043,7 +2043,8 @@ c     stop
          call fgslib_crs_setup(xxth_strs,imode,nekcomm,mp,n,se_to_gcrs,
      $        nnz,ia,ja,a,null_space)
       elseif (imode.eq.2) then
-         call hypre_crs_setup_strs(nekcomm,a,nxc,mp)
+         call hypre_crs_setup(xxth_strs,nekcomm,mp,n,se_to_gcrs,
+     $        nnz,ia,ja,a)
       endif
 
       t0 = dnekclock()-t0

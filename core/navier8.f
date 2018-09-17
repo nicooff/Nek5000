@@ -52,7 +52,7 @@ c
       if (param(40).lt.2) then
          call fgslib_crs_solve(xxth(ifield),uc,uf)
       elseif (param(40).eq.2) then
-         call hypre_crs_solve(ifield,uc,uf)
+         call hypre_crs_solve(xxth(ifield),uc,uf)
       endif
 
       call map_c_to_f_l2_bilin(uf,uc,w)
@@ -218,7 +218,8 @@ c      endif
      $                         se_to_gcrs,nz,ia,ja,a, null_space)
 c     call fgslib_crs_stats(xxth(ifield))
       elseif (imode.eq.2) then
-         call hypre_crs_setup(ifield,nekcomm,a,nxc,mp)
+         call hypre_crs_setup(xxth(ifield),nekcomm,mp,ntot,
+     $                         se_to_gcrs,nz,ia,ja,a)
       endif
       
       t0 = dnekclock()-t0
@@ -1376,7 +1377,7 @@ c
       if (param(40).lt.2) then
          call fgslib_crs_solve(xxth(ifield),uc,vc)
       elseif (param(40).eq.2) then
-         call hypre_crs_solve(uc,vc)
+         call hypre_crs_solve(xxth(ifield),uc,vc)
       endif
       
 #ifdef TIMER

@@ -1367,7 +1367,7 @@ c
          call fgslib_crs_solve(xxth(ifield),e,r)
 #ifdef HYPRE         
       elseif (param(40).eq.2) then
-         call hypre_crs_solve(ifield,e,r)
+         call hypre_crs_solve(xxth(ifield),e,r)
 #endif         
       endif
       
