@@ -38,6 +38,13 @@ void fhypre_crs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
     handle_max+=handle_max/2+1,
     handle_array=trealloc(struct hypre_crs_data*,handle_array,handle_max);
   comm_init_check(&c, *comm, *np);
+
+  if (sizeof(HYPRE_Int) != sizeof(long long)) {
+    if (c.id == 0)
+      fail(1,__FILE__,__LINE__,"incompatible long long size");
+    exit(EXIT_FAILURE);
+  }
+
   handle_array[handle_n]=chypre_crs_setup(*n,(const ulong*)id,
                                     *nz,(const uint*)Ai,(const uint*)Aj,A,
                                     &c);
@@ -104,7 +111,7 @@ struct hypre_crs_data *chypre_crs_setup( uint n, const ulong *id,
  
   // Create and initialize rhs and solution vectors
   HYPRE_Int ilower = hypre_data->ilower;
-  HYPRE_Int iupper = ilower+(HYPRE_Int)hypre_data->un-1;
+  HYPRE_Int iupper = ilower + (HYPRE_Int)(hypre_data->un) - 1;
 
   HYPRE_IJVectorCreate(hypre_data->comm.c,ilower,iupper,&hypre_data->b);
   HYPRE_IJVector b = hypre_data->b;
@@ -182,9 +189,9 @@ void build_hypre_matrix(struct hypre_crs_data *hypre_data, uint n, const ulong
   // Build Hypre matrix
   hypre_data->un = uid.n; 
 
-  HYPRE_Int ilower = (HYPRE_Int)uid_ptr[0];
+  HYPRE_Int ilower = (HYPRE_Int)(uid_ptr[0]);
   hypre_data->ilower = ilower;
-  HYPRE_Int iupper = ilower + (HYPRE_Int)uid.n - 1; 
+  HYPRE_Int iupper = ilower + (HYPRE_Int)(uid.n) - 1; 
 
   HYPRE_IJMatrixCreate(comm.c,ilower,iupper,ilower,iupper,&hypre_data->A);
   HYPRE_IJMatrix A_ij = hypre_data->A;
@@ -197,11 +204,11 @@ void build_hypre_matrix(struct hypre_crs_data *hypre_data, uint n, const ulong
   
   for(nz=mat.ptr,enz=nz+nnz;nz!=enz;++nz) 
     {
-      mati = (HYPRE_Int)uid_ptr[nz->i.i];
+      mati = (HYPRE_Int)(uid_ptr[nz->i.i]);
       matv = nz->v; 
       if(nz->j.p==pid)
         {
-	  matj = (HYPRE_Int)uid_ptr[nz->j.i];
+	  matj = (HYPRE_Int)(uid_ptr[nz->j.i]);
         }
       else 
         {
@@ -210,7 +217,7 @@ void build_hypre_matrix(struct hypre_crs_data *hypre_data, uint n, const ulong
 	  if(rlbl->rid.p!=jp) printf("Error when assembling matrix\n");
 	  while(rlbl->rid.i<ji) ++rlbl;
 	  if(rlbl->rid.i!=ji) printf("Error when assembling matrix\n");
-	  matj = (HYPRE_Int)rlbl->id;
+	  matj = (HYPRE_Int)(rlbl->id);
         }
       HYPRE_IJMatrixSetValues(A_ij, nrows, &ncols, &mati, &matj, &matv);
     }
