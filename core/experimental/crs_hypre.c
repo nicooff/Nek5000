@@ -85,23 +85,28 @@ struct hypre_crs_data *chypre_crs_setup( uint n, const ulong *id,
   // Build CRS matrix in hypre format and initialize stuff
   build_hypre_matrix(hypre_data, n, id, nz, Ai, Aj, Av);
 
+  HYPRE_IJMatrixPrint(hypre_data->A,"Aij");
+
   // Create AMG solver
   HYPRE_BoomerAMGCreate(&hypre_data->solver);
   HYPRE_Solver solver = hypre_data->solver;
  
   // Set AMG parameters
-  HYPRE_BoomerAMGSetPrintLevel(solver,1);
-  HYPRE_BoomerAMGSetCoarsenType(solver,8);
-  HYPRE_BoomerAMGSetInterpType(solver,14);
-  HYPRE_BoomerAMGSetRelaxType(solver,8);
-  HYPRE_BoomerAMGSetMaxCoarseSize(solver,5);
-  HYPRE_BoomerAMGSetStrongThreshold(solver,0.4);
+  HYPRE_BoomerAMGSetPrintLevel(solver,3);
+  HYPRE_BoomerAMGSetCoarsenType(solver,10);
+  HYPRE_BoomerAMGSetInterpType(solver,6);
+  //  HYPRE_BoomerAMGSetRelaxType(solver,8);
+  //  HYPRE_BoomerAMGSetMaxCoarseSize(solver,5);
+  HYPRE_BoomerAMGSetCycleRelaxType(solver,13,1);
+  HYPRE_BoomerAMGSetCycleRelaxType(solver,14,2);
+  HYPRE_BoomerAMGSetCycleRelaxType(solver,9,3);
+  HYPRE_BoomerAMGSetStrongThreshold(solver,0.5);
   HYPRE_BoomerAMGSetMeasureType(solver,1);
-  HYPRE_BoomerAMGSetTol(solver,0.1);
-  HYPRE_BoomerAMGSetMaxIter(solver,3);
-  HYPRE_BoomerAMGSetNonGalerkinTol(solver, 0.05);
-  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.01, 1);
-  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.0 , 0);
+  HYPRE_BoomerAMGSetTol(solver,1.e-7);
+  HYPRE_BoomerAMGSetMaxIter(solver,100);
+  //  HYPRE_BoomerAMGSetNonGalerkinTol(solver, 0.05);
+  //  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.01, 1);
+  //  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.0 , 0);
   /*HYPRE_Real NonGalerTol[3];
   NonGalerTol[0] = 0.0;
   NonGalerTol[1] = 0.01;
@@ -274,6 +279,11 @@ void chypre_crs_solve(double *x, struct hypre_crs_data *data, double *b)
     x[umap[i]] = xx;
   }
   gs(x, gs_double,gs_add, 0, data->gs_top, 0);
+
+  HYPRE_IJVectorPrint(ij_b,"bij");
+  HYPRE_IJVectorPrint(ij_x,"xij");
+  MPI_Barrier(data->comm.c);
+  die(0);
 }
 
 void chypre_crs_free(struct hypre_crs_data *data)
