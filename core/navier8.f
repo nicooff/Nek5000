@@ -218,7 +218,7 @@ c      endif
      $                         se_to_gcrs,nz,ia,ja,a, null_space)
 c     call fgslib_crs_stats(xxth(ifield))
       elseif (imode.eq.2) then
-         call hypre_crs_setup(ifield,nekcomm,a,nxc,mp)
+         call hypre_crs_setup(ifield,nekcomm,a,nxc,mp,null_space)
       endif
       
       t0 = dnekclock()-t0

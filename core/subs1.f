@@ -2043,7 +2043,7 @@ c     stop
          call fgslib_crs_setup(xxth_strs,imode,nekcomm,mp,n,se_to_gcrs,
      $        nnz,ia,ja,a,null_space)
       elseif (imode.eq.2) then
-         call hypre_crs_setup_strs(nekcomm,a,nxc,mp)
+         call hypre_crs_setup_strs(nekcomm,a,nxc,mp,null_space)
       endif
 
       t0 = dnekclock()-t0

@@ -12,19 +12,21 @@ c-----------------------------------------------------------------------
 !! @param[in] np           number of MPI processes
 !! @note The data for the CRS solver are stored in an include file
 !!       called CRS_HYPRE.
-      subroutine hypre_crs_setup(ifield,comm,a,nxc,np)
+      subroutine hypre_crs_setup(ifield,comm,a,nxc,np,nullspace)
       include 'SIZE'
       include 'DOMAIN'
       include 'CRS_HYPRE'
 
 c     Subroutine arguments
-      integer ifield,comm,nxc,np
+      integer ifield,comm,nxc,np,nullspace
       real a(lcr,lcr,lelv)      
 
+      hypre_nullspace(ifield) = nullspace
+      
       call hypre_crs_setup_(hypre_solver(ifield),hypre_A(ifield),
      $     hypre_x(ifield),hypre_b(ifield),hypre_gsh(ifield),
      $     hypre_ilower(ifield),hypre_nrows(ifield),hypre_map(1,ifield),
-     $     comm,a,nxc,np)
+     $     hypre_tni(ifield),comm,a,nxc,np)
       
       return
       end
@@ -36,18 +38,20 @@ c-----------------------------------------------------------------------
 !! @param[in] np           number of MPI processes
 !! @note The data for the CRS solver are stored in an include file
 !!       called CRS_HYPRE.      
-      subroutine hypre_crs_setup_strs(comm,a,nxc,np)
+      subroutine hypre_crs_setup_strs(comm,a,nxc,np,nullspace)
       include 'SIZE'
       include 'DOMAIN'
       include 'CRS_HYPRE'
       
 c     Subroutine arguments
-      integer comm,nxc,np
+      integer comm,nxc,np,nullspace
       real a(lcr,lcr,lelv)
+
+      hypre_nullspace_strs = nullspace
 
       call hypre_crs_setup_(hypre_solver_strs,hypre_A_strs,
      $     hypre_x_strs,hypre_b_strs,hypre_gsh_strs,hypre_ilower_strs,
-     $     hypre_nrows_strs,hypre_map_strs,comm,a,nxc,np)
+     $     hypre_nrows_strs,hypre_map_strs,hypre_tni_strs,comm,a,nxc,np)
       
       return
       end
@@ -69,7 +73,7 @@ c     Arguments list
       call hypre_crs_solve_(hypre_solver(ifield),hypre_A(ifield),
      $     hypre_x(ifield),hypre_b(ifield),hypre_gsh(ifield),
      $     hypre_ilower(ifield),hypre_nrows(ifield),hypre_map(1,ifield),
-     $     x,b)
+     $     hypre_nullspace(ifield),hypre_tni(ifield),x,b)
       
       return
       end
@@ -88,7 +92,8 @@ c     Arguments list
 
       call hypre_crs_solve_(hypre_solver_strs,hypre_A_strs,
      $     hypre_x_strs,hypre_b_strs,hypre_gsh_strs,
-     $     hypre_ilower_strs,hypre_nrows_strs,hypre_map_strs,x,b)
+     $     hypre_ilower_strs,hypre_nrows_strs,hypre_map_strs,
+     $     hypre_nullspace_strs,hypre_tni_strs,x,b)
       
       return
       end      
@@ -138,7 +143,7 @@ c-----------------------------------------------------------------------
 !! @param[in] np           number of MPI processes
 !! @note The vectors ij_x and ij_b are only initialized.      
       subroutine hypre_crs_setup_(solver,ij_A,ij_x,ij_b,gsh,ilower,
-     $     un,crs2hypre,comm,a,nxc,np)
+     $     un,crs2hypre,tni,comm,a,nxc,np)
       implicit none
       include 'SIZE'
       include 'DOMAIN'          ! lcr,se_to_gcrs
@@ -147,7 +152,7 @@ c-----------------------------------------------------------------------
 c     Arguments list
       integer*8 solver,ij_A,ij_x,ij_b,un,ilower
       integer gsh,crs2hypre(lelt),comm,nxc,np
-      real a(lcr,lcr,lelv)
+      real tni,a(lcr,lcr,lelv)
 
 c     Hypre data
       integer glhid(lcr,lelv) ! global Hypre id
@@ -170,7 +175,7 @@ c     Other
       integer ir,ic,iel,icr,idh,ncr,ncrv,n,iglmax
       integer*8 i8gl_running_sum,i8glmax
       integer pid_owner(lcr,lelv)
-      integer*8 i8,unmin,unmax
+      integer*8 i8,ung,unmin,unmax
 
       common /scrxxti/ glhid,pid_owner
 
@@ -195,6 +200,10 @@ c     Identify process id of owner
          enddo
       enddo
       call fgslib_gs_op(gsh,pid_owner,2,1,0) ! scatter
+
+      ung = un
+      call i8gop(ung,i8,'+  ',1)
+      tni = 1./real(ung)
 
       unmin = -i8glmax(-un,1)
       unmax = i8glmax(un,1)
@@ -283,14 +292,31 @@ c     Create AMG solver
 
 c     Set AMG parameters
       call HYPRE_BoomerAMGSetPrintLevel(solver,int(1,kind(i8)),ierr) ! Verbose level: nothing(->0)/setup info(->1)/solver info(->2)/both(->3)
-      call HYPRE_BoomerAMGSetCoarsenType(solver,int(8,kind(i8)),ierr) ! PMIS
-      call HYPRE_BoomerAMGSetInterpType(solver,int(14,kind(i8)),ierr) ! extended interpolation
-      call HYPRE_BoomerAMGSetRelaxType(solver,int(8,kind(i8)),ierr) ! l1-scaled hybrid symmetric Gauss-Seidel
-      call HYPRE_BoomerAMGSetMaxCoarseSize(solver,int(5,kind(i8)),ierr) 
-      call HYPRE_BoomerAMGSetStrongThrshld(solver,0.4,ierr) ! Increase for better convergence. Decrease for faster solver time.
+      call HYPRE_BoomerAMGSetCoarsenType(solver,int(10,kind(i8)),ierr) ! HMIS
+      call HYPRE_BoomerAMGSetInterpType(solver,int(6,kind(i8)),ierr) ! extended+i interpolation
+c      call HYPRE_BoomerAMGSetRelaxType(solver,int(8,kind(i8)),ierr) ! l1-scaled hybrid symmetric Gauss-Seidel
+c     call HYPRE_BoomerAMGSetMaxCoarseSize(solver,int(5,kind(i8)),ierr)
+      call HYPRE_BoomerAMGSetCycleRelaxType(solver,int(13,kind(i8)),
+     $     int(1,kind(i8)),ierr)
+      call HYPRE_BoomerAMGSetCycleRelaxType(solver,int(14,kind(i8)),
+     $     int(2,kind(i8)),ierr)
+      call HYPRE_BoomerAMGSetCycleRelaxType(solver,int(9,kind(i8)),
+     $     int(3,kind(i8)),ierr)
+      call HYPRE_BoomerAMGSetStrongThrshld(solver,0.5,ierr) ! Increase for better convergence. Decrease for faster solver time.
       call HYPRE_BoomerAMGSetMeasureType(solver,int(1,kind(i8)),ierr) ! Local(->0)/Global(->1) measure
-      call HYPRE_BoomerAMGSetTol(solver,0.1,ierr) ! Decrease for better convergence. Increase for faster solver time.
-      call HYPRE_BoomerAMGSetMaxIter(solver,int(3,kind(i8)),ierr) ! Increase for better convergence. Decrease for faster solver time.
+      call HYPRE_BoomerAMGSetTol(solver,0.0,ierr) ! Decrease for better convergence. Increase for faster solver time.
+      call HYPRE_BoomerAMGSetMaxIter(solver,int(1,kind(i8)),ierr) ! Increase for better convergence. Decrease for faster solver time.
+      call HYPRE_BoomerAMGSetNonGalTol(solver,0.05,ierr)
+      call HYPRE_BoomerAMGSetLvlNonGalTol(solver,0.04,int(4,kind(i8)),
+     $     ierr)
+      call HYPRE_BoomerAMGSetLvlNonGalTol(solver,0.03,int(3,kind(i8)),
+     $     ierr)
+      call HYPRE_BoomerAMGSetLvlNonGalTol(solver,0.02,int(2,kind(i8)),
+     $     ierr)
+      call HYPRE_BoomerAMGSetLvlNonGalTol(solver,0.01,int(1,kind(i8)),
+     $     ierr)
+      call HYPRE_BoomerAMGSetLvlNonGalTol(solver,0.00,int(0,kind(i8)),
+     $     ierr)
 
 c     Create and initialize rhs and solution vectors
       call HYPRE_IJVectorCreate(comm,jlower,jupper,ij_b,ierr)
@@ -324,12 +350,14 @@ c-----------------------------------------------------------------------
 !! @param[in] hil          lowest row number owned by the process
 !! @param[in] un           number of CRS nodes owned by process
 !! @param[in] crs2hypre    mapping from CRS to Hypre data layout
+!! @param[in] nullspace    nullspace for the CRS operator
+!! @param[in] tni          1./total number of unique ids        
 !! @param[out] x           solution
 !! @param[in] b            right hand side
 !! @note Vectors ij_x and ij_b only need to be initialized at input,
 !!       their entries are set in the routine.
       subroutine hypre_crs_solve_(solver,ij_A,ij_x,ij_b,gsh,hil,un,
-     $     crs2hypre,x,b)
+     $     crs2hypre,nullspace,tni,x,b)
       implicit none
       include 'SIZE'
       include 'DOMAIN'
@@ -338,8 +366,8 @@ c     Arguments list
       integer*8 solver,ij_A,ij_x,ij_b
       integer*8 hil,un
       integer crs2hypre(lelt)
-      integer gsh
-      real x(1),b(1)
+      integer gsh,nullspace
+      real x(1),b(1),xx,avg,tni
 
 c     Local variables      
       integer*8 par_A,par_x,par_b
@@ -363,14 +391,24 @@ c     Local variables
       call HYPRE_IJMatrixGetObject(ij_A,par_A,ierr)
       call HYPRE_BoomerAMGSolve(solver,par_A,par_b,par_x,ierr)
 
+      avg = 0.
       do i=1,un
          ir=hil+i-1
-         call HYPRE_IJVectorGetValues(ij_x,int(1,kind(i8)),ir,
-     $        x(crs2hypre(i)),ierr)
+         call HYPRE_IJVectorGetValues(ij_x,int(1,kind(i8)),ir,xx,ierr)
+         x(crs2hypre(i)) = xx
+         if (nullspace.ne.0) avg  = avg + xx
       enddo
 
+      if (nullspace.ne.0) then
+         call gop(avg,xx,'+  ',1)
+         avg = avg*tni
+         do i=1,un
+            x(crs2hypre(i)) = x(crs2hypre(i)) - avg
+         enddo
+      endif
+
       call fgslib_gs_op(gsh,x,1,1,0) ! scatter
-      
+
       return
       end
 c-----------------------------------------------------------------------
