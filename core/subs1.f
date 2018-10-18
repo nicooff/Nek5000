@@ -2044,7 +2044,7 @@ c     stop
      $        nnz,ia,ja,a,null_space)
       elseif (imode.eq.2) then
          call hypre_crs_setup(xxth_strs,nekcomm,mp,n,se_to_gcrs,
-     $        nnz,ia,ja,a)
+     $        nnz,ia,ja,a,null_space)
       endif
 
       t0 = dnekclock()-t0

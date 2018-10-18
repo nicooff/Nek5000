@@ -8,15 +8,17 @@
 #include "HYPRE.h"
 
 struct hypre_crs_data {
-HYPRE_Solver solver;
-HYPRE_IJMatrix A;
-HYPRE_IJVector b;
-HYPRE_IJVector x;
-HYPRE_Int ilower;
-uint un; 
-struct comm comm;
-struct gs_data *gs_top;
-uint *umap;
+  HYPRE_Solver solver;
+  HYPRE_IJMatrix A;
+  HYPRE_IJVector b;
+  HYPRE_IJVector x;
+  HYPRE_Int ilower;
+  uint un; 
+  struct comm comm;
+  struct gs_data *gs_top;
+  uint *umap;
+  uint nullspace;
+  double tni;
 };
 
 /* remote id - designates the i-th uknown owned by proc p */
@@ -44,7 +46,7 @@ void build_hypre_matrix(struct hypre_crs_data *hypre_data, uint n,
   
 struct hypre_crs_data* chypre_crs_setup( uint n, const ulong *id,
 		  uint nz, const uint *Ai, const uint *Aj, const double *Av,
-					   const struct comm *comm);
+			 const struct comm *comm, const uint nullspace);
 
 void chypre_crs_solve(double *x, struct hypre_crs_data *data, double *b);
 

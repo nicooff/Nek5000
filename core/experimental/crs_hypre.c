@@ -31,7 +31,8 @@ static int handle_n = 0;
 
 void fhypre_crs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
 		      const sint *n, const slong id[], const sint *nz,
-		      const sint Ai[], const sint Aj[], const double A[])
+		      const sint Ai[], const sint Aj[], const double A[],
+		      const sint *nullspace)
 {
   struct comm c;
   if(handle_n==handle_max)
@@ -47,7 +48,7 @@ void fhypre_crs_setup(sint *handle, const MPI_Fint *comm, const sint *np,
 
   handle_array[handle_n]=chypre_crs_setup(*n,(const ulong*)id,
                                     *nz,(const uint*)Ai,(const uint*)Aj,A,
-                                    &c);
+					  &c,*nullspace);
   comm_free(&c);
   *handle = handle_n++;
 }
@@ -74,10 +75,12 @@ void fhypre_crs_free(sint *handle)
 
 struct hypre_crs_data *chypre_crs_setup( uint n, const ulong *id,
 		  uint nz, const uint *Ai, const uint *Aj, const double *Av,
-		  const struct comm *comm)
+                  const struct comm *comm, const uint nullspace)
 {
   struct hypre_crs_data *hypre_data = tmalloc(struct hypre_crs_data, 1);
 
+  hypre_data->nullspace = nullspace;
+  
   comm_dup(&hypre_data->comm,comm);
   hypre_data->gs_top = gs_setup((const slong*)id,n,&hypre_data->comm, 1,
     gs_auto, 1);
@@ -85,25 +88,27 @@ struct hypre_crs_data *chypre_crs_setup( uint n, const ulong *id,
   // Build CRS matrix in hypre format and initialize stuff
   build_hypre_matrix(hypre_data, n, id, nz, Ai, Aj, Av);
 
-  HYPRE_IJMatrixPrint(hypre_data->A,"Aij");
+  // Compute total number of unique IDs and tni
+  double tmp = (double)hypre_data->un;
+  double buf;
+  comm_allreduce(&hypre_data->comm,gs_double,gs_add,&tmp,1,&buf);       
+  hypre_data->tni = 1./tmp;
 
   // Create AMG solver
   HYPRE_BoomerAMGCreate(&hypre_data->solver);
   HYPRE_Solver solver = hypre_data->solver;
  
   // Set AMG parameters
-  HYPRE_BoomerAMGSetPrintLevel(solver,3);
+  HYPRE_BoomerAMGSetPrintLevel(solver,1);
   HYPRE_BoomerAMGSetCoarsenType(solver,10);
   HYPRE_BoomerAMGSetInterpType(solver,6);
-  //  HYPRE_BoomerAMGSetRelaxType(solver,8);
-  //  HYPRE_BoomerAMGSetMaxCoarseSize(solver,5);
   HYPRE_BoomerAMGSetCycleRelaxType(solver,13,1);
   HYPRE_BoomerAMGSetCycleRelaxType(solver,14,2);
   HYPRE_BoomerAMGSetCycleRelaxType(solver,9,3);
   HYPRE_BoomerAMGSetStrongThreshold(solver,0.5);
   HYPRE_BoomerAMGSetMeasureType(solver,1);
-  HYPRE_BoomerAMGSetTol(solver,1.e-7);
-  HYPRE_BoomerAMGSetMaxIter(solver,100);
+  HYPRE_BoomerAMGSetTol(solver,0.0);
+  HYPRE_BoomerAMGSetMaxIter(solver,1);
   //  HYPRE_BoomerAMGSetNonGalerkinTol(solver, 0.05);
   //  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.01, 1);
   //  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.0 , 0);
@@ -271,19 +276,25 @@ void chypre_crs_solve(double *x, struct hypre_crs_data *data, double *b)
 
   HYPRE_BoomerAMGSolve(solver,par_A,par_b,par_x);
 
+  double avg = 0.0;
   for(i=0;i<un;++i) 
   {
     HYPRE_Int ii = ilower + (HYPRE_Int)i;
     double xx;
     HYPRE_IJVectorGetValues(ij_x,1,&ii,&xx);
     x[umap[i]] = xx;
+    if (data->nullspace) avg += xx;
   }
-  gs(x, gs_double,gs_add, 0, data->gs_top, 0);
 
-  HYPRE_IJVectorPrint(ij_b,"bij");
-  HYPRE_IJVectorPrint(ij_x,"xij");
-  MPI_Barrier(data->comm.c);
-  die(0);
+  if (data->nullspace)
+  {
+    double buf;
+    comm_allreduce(&data->comm,gs_double,gs_add,&avg,1,&buf);
+    avg = avg*data->tni;
+    for(i=0;i<un;++i) x[umap[i]] -= avg;
+  }
+  
+  gs(x, gs_double,gs_add, 0, data->gs_top, 0);
 }
 
 void chypre_crs_free(struct hypre_crs_data *data)
