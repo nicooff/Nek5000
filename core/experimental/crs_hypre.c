@@ -109,15 +109,13 @@ struct hypre_crs_data *chypre_crs_setup( uint n, const ulong *id,
   HYPRE_BoomerAMGSetMeasureType(solver,1);
   HYPRE_BoomerAMGSetTol(solver,0.0);
   HYPRE_BoomerAMGSetMaxIter(solver,1);
-  //  HYPRE_BoomerAMGSetNonGalerkinTol(solver, 0.05);
-  //  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.01, 1);
-  //  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver, 0.0 , 0);
-  /*HYPRE_Real NonGalerTol[3];
-  NonGalerTol[0] = 0.0;
-  NonGalerTol[1] = 0.01;
-  NonGalerTol[2] = 0.05;
-  HYPRE_BoomerAMGSetNonGalerkTol(solver, 3, NonGalerTol);*/
-//  HYPRE_BoomerAMGSet...(solver,...);
+  HYPRE_BoomerAMGSetMaxIter(solver,1);
+  HYPRE_BoomerAMGSetNonGalerkinTol(solver,0.05);
+  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver,0.04,4);
+  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver,0.03,3);
+  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver,0.02,2);
+  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver,0.01,1);
+  HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver,0.00,0);
  
   // Create and initialize rhs and solution vectors
   HYPRE_Int ilower = hypre_data->ilower;
