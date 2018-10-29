@@ -109,7 +109,6 @@ struct hypre_crs_data *chypre_crs_setup( uint n, const ulong *id,
   HYPRE_BoomerAMGSetMeasureType(solver,1);
   HYPRE_BoomerAMGSetTol(solver,0.0);
   HYPRE_BoomerAMGSetMaxIter(solver,1);
-  HYPRE_BoomerAMGSetMaxIter(solver,1);
   HYPRE_BoomerAMGSetNonGalerkinTol(solver,0.05);
   HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver,0.04,4);
   HYPRE_BoomerAMGSetLevelNonGalerkinTol(solver,0.03,3);
